@@ -1,0 +1,3975 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 area             lab10_variables, data, readwrit
+e
+    2 00000000         
+    3 00000000         ; -----GLOBAL VARIABLES-----
+    4 00000000         ; A variable that keeps track of which easter eggs have 
+                       been found
+    5 00000000         ; 0x00 - none
+    6 00000000         ; 0x01 - dresser
+    7 00000000 00      estr_egg
+                               dcb              0x00
+    8 00000001         
+    9 00000001         ; A variable that keeps track of where the key is
+   10 00000001         ; 0x00 - found
+   11 00000001         ; 0x01 - dresser_top_random
+   12 00000001         ; 0x02 - dresser_drawers_top_shirts
+   13 00000001         ; 0x03 - dresser_drawers_top_pants
+   14 00000001         ; 0x04 - dresser_drawers_bottom
+   15 00000001         ; 0x05 - bed_over_jacket
+   16 00000001         ; 0x06 - bed_over_blankets
+   17 00000001         ; 0x07 - bed_under
+   18 00000001 00      key_loc dcb              0x00
+   19 00000002         
+   20 00000002 00      fail_tms
+                               dcb              0x00
+   21 00000003         
+   22 00000003                 area             lab10, code, readonly
+   23 00000000         
+   24 00000000         ; global constants
+   25 00000000 00010000 
+                       talk_speed
+                               dcd              0x10000     ; 0x10000
+   26 00000004 00010000 
+                       sys_speed
+                               dcd              0x10000     ; 0x15000
+   27 00000008         
+   28 00000008         ; ----SCRIPT-----
+   29 00000008         ; global text
+   30 00000008 4E 6F 20 
+              6B 65 79 
+              73 2E 00 no_key_msg
+                               dcb              "No keys.", 0x00
+   31 00000011 59 6F 75 
+              20 66 6F 
+              75 6E 64 
+              20 74 68 
+              65 00    key_found_msg0
+                               dcb              "You found the", 0x00
+   32 0000001F 6B 65 79 
+              73 21 00 key_found_msg1
+                               dcb              "keys!", 0x00
+   33 00000025 59 6F 75 
+              20 68 65 
+              61 64 20 
+              6F 66 66 
+              20 74 6F 
+              00       key_found_msg2
+                               dcb              "You head off to", 0x00
+   34 00000035 67 65 74 
+              20 74 6F 
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+              20 79 6F 
+              75 72 00 key_found_msg3
+                               dcb              "get to your", 0x00
+   35 00000041 63 6C 61 
+              73 73 20 
+              6F 6E 20 
+              74 69 6D 
+              65 2E 00 key_found_msg4
+                               dcb              "class on time.", 0x00
+   36 00000050         
+   37 00000050         ; [MDL_entry] text
+   38 00000050 59 6F 75 
+              20 65 6E 
+              74 65 72 
+              20 79 6F 
+              75 72 00 tst_string0
+                               dcb              "You enter your", 0x00
+   39 0000005F 72 6F 6F 
+              6D 2E 2E 
+              2E 00    tst_string1
+                               dcb              "room...", 0x00
+   40 00000067 22 43 72 
+              61 70 20 
+              49 27 6D 
+              20 67 6F 
+              6E 6E 61 
+              20 00    tst_string2
+                               dcb              "\"Crap I'm gonna ", 0x00
+   41 00000078 62 65 20 
+              6C 61 74 
+              65 20 69 
+              66 20 49 
+              20 20 20 
+              20 00    tst_string3
+                               dcb              "be late if I    ", 0x00
+   42 00000089 63 61 6E 
+              27 74 20 
+              66 69 6E 
+              64 20 6D 
+              79 20 20 
+              20 00    tst_string4
+                               dcb              "can't find my   ", 0x00
+   43 0000009A 6B 65 79 
+              73 21 22 
+              00       tst_string5
+                               dcb              "keys!\"", 0x00
+   44 000000A1         
+   45 000000A1         ; [MDL_chs] text
+   46 000000A1 57 68 65 
+              72 65 20 
+              77 6F 75 
+              6C 64 20 
+              6C 69 6B 
+              65 00    chs_msg0
+                               dcb              "Where would like", 0x00
+   47 000000B2 74 6F 20 
+              63 68 65 
+              63 6B 3F 
+              00       chs_msg1
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+                               dcb              "to check?", 0x00
+   48 000000BC 41 3A 64 
+              72 65 73 
+              73 65 72 
+              20 20 42 
+              3A 62 65 
+              64 00    chs_mnu dcb              "A:dresser  B:bed", 0x00
+   49 000000CD         
+   50 000000CD         ; [MDL_drsr] text
+   51 000000CD 41 20 64 
+              72 65 73 
+              73 65 72 
+              2E 2E 2E 
+              00       drsr_msg
+                               dcb              "A dresser...", 0x00
+   52 000000DA 41 3A 74 
+              6F 70 20 
+              20 42 3A 
+              64 72 61 
+              77 65 72 
+              73 00    drsr_mnu
+                               dcb              "A:top  B:drawers", 0x00
+   53 000000EB 54 68 65 
+              72 65 20 
+              61 72 65 
+              20 61 00 drsr_t_msg0
+                               dcb              "There are a", 0x00
+   54 000000F7 62 75 6E 
+              63 68 20 
+              6F 66 20 
+              62 6F 6F 
+              6B 73 00 drsr_t_msg1
+                               dcb              "bunch of books", 0x00
+   55 00000106 61 6E 64 
+              20 72 61 
+              6E 64 6F 
+              6D 20 63 
+              72 61 70 
+              2E 00    drsr_t_msg2
+                               dcb              "and random crap.", 0x00
+   56 00000117 41 3A 72 
+              61 6E 64 
+              6F 6D 20 
+              63 72 61 
+              70 00    drsr_t_mnu
+                               dcb              "A:random crap", 0x00
+   57 00000125 54 68 65 
+              72 65 20 
+              61 72 65 
+              20 73 6F 
+              6D 65 00 drsr_t_a_msg0
+                               dcb              "There are some", 0x00
+   58 00000134 69 6E 64 
+              65 78 20 
+              63 61 72 
+              64 73 20 
+              61 6E 64 
+              00       drsr_t_a_msg1
+                               dcb              "index cards and", 0x00
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+   59 00000144 6D 65 61 
+              6E 69 6E 
+              67 6C 65 
+              73 73 00 drsr_t_a_msg2
+                               dcb              "meaningless", 0x00
+   60 00000150 6B 6E 69 
+              63 6B 2D 
+              6B 6E 61 
+              63 6B 73 
+              2E 00    drsr_t_a_msg3
+                               dcb              "knick-knacks.", 0x00
+   61 0000015E 49 74 20 
+              6C 6F 6F 
+              6B 73 20 
+              6C 69 6B 
+              65 00    drsr_t_b_msg_a0
+                               dcb              "It looks like", 0x00 ; once yo
+                                                            u find the behind d
+                                                            resser easter egg
+   62 0000016C 74 68 65 
+              72 65 27 
+              73 20 73 
+              6F 6D 65 
+              74 68 69 
+              6E 67 00 drsr_t_b_msg_a1
+                               dcb              "there's something", 0x00
+   63 0000017E 62 65 68 
+              69 6E 64 
+              20 74 68 
+              65 00    drsr_t_b_msg_a2
+                               dcb              "behind the", 0x00
+   64 00000189 64 72 65 
+              73 73 65 
+              72 2E 2E 
+              2E 00    drsr_t_b_msg_a3
+                               dcb              "dresser...", 0x00
+   65 00000194 59 6F 75 
+              20 6D 6F 
+              76 65 20 
+              69 74 00 drsr_t_b_msg_a4
+                               dcb              "You move it", 0x00
+   66 000001A0 61 73 69 
+              64 65 2E 
+              00       drsr_t_b_msg_a5
+                               dcb              "aside.", 0x00
+   67 000001A7 54 68 65 
+              72 65 20 
+              69 73 20 
+              64 6F 67 
+              2E 00    drsr_t_b_msg_a6
+                               dcb              "There is dog.", 0x00
+   68 000001B5 22 62 61 
+              72 6B 2E 
+              22 00    drsr_t_b_msg_a7
+                               dcb              "\"bark.\"", 0x00
+   69 000001BD 22 61 6D 
+              20 64 6F 
+              67 2E 22 
+              00       drsr_t_b_msg_a8
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+                               dcb              "\"am dog.\"", 0x00
+   70 000001C7 22 73 61 
+              6C 75 74 
+              61 74 69 
+              6F 6E 73 
+              2E 22 00 drsr_t_b_msg_a9
+                               dcb              "\"salutations.\"", 0x00
+   71 000001D6 4E 6F 20 
+              64 6F 67 
+              20 61 6E 
+              79 6D 6F 
+              72 65 2E 
+              00       drsr_t_b_msg_b0
+                               dcb              "No dog anymore.", 0x00 ; after
+                                                             you've found the b
+                                                            ehind dresser easte
+                                                            r egg
+   72 000001E6 54 68 65 
+              72 65 20 
+              61 72 65 
+              20 74 77 
+              6F 00    drsr_d_msg0
+                               dcb              "There are two", 0x00
+   73 000001F4 64 72 61 
+              77 65 72 
+              73 2C 20 
+              6F 6E 65 
+              20 6F 6E 
+              00       drsr_d_msg1
+                               dcb              "drawers, one on", 0x00
+   74 00000204 74 6F 70 
+              20 61 6E 
+              64 20 6F 
+              6E 65 00 drsr_d_msg2
+                               dcb              "top and one", 0x00
+   75 00000210 62 65 6C 
+              6F 77 2E 
+              00       drsr_d_msg3
+                               dcb              "below.", 0x00
+   76 00000217 41 3A 74 
+              6F 70 20 
+              20 20 42 
+              3A 62 6F 
+              74 74 6F 
+              6D 00    drsr_d_mnu
+                               dcb              "A:top   B:bottom", 0x00
+   77 00000228 54 68 65 
+              72 65 20 
+              61 72 65 
+              20 73 68 
+              69 72 74 
+              73 00    drsr_d_t_msg0
+                               dcb              "There are shirts", 0x00
+   78 00000239 61 6E 64 
+              20 70 61 
+              6E 74 73 
+              20 66 6F 
+              6C 64 65 
+              64 00    drsr_d_t_msg1
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+                               dcb              "and pants folded", 0x00
+   79 0000024A 61 6E 64 
+              20 73 74 
+              61 63 6B 
+              65 64 20 
+              69 6E 20 
+              20 00    drsr_d_t_msg2
+                               dcb              "and stacked in  ", 0x00
+   80 0000025B 74 68 65 
+              20 64 72 
+              61 77 65 
+              72 2E 00 drsr_d_t_msg3
+                               dcb              "the drawer.", 0x00
+   81 00000267 41 3A 73 
+              68 69 72 
+              74 73 20 
+              42 3A 70 
+              61 6E 74 
+              73 00    drsr_d_t_mnu
+                               dcb              "A:shirts B:pants", 0x00
+   82 00000278 59 6F 75 
+              20 63 68 
+              65 63 6B 
+              20 75 6E 
+              64 65 72 
+              20 00    drsr_d_t_s_msg0
+                               dcb              "You check under ", 0x00
+   83 00000289 74 68 65 
+              20 73 74 
+              61 63 6B 
+              73 20 6F 
+              66 20 20 
+              20 00    drsr_d_t_s_msg1
+                               dcb              "the stacks of   ", 0x00
+   84 0000029A 73 68 69 
+              72 74 73 
+              2E 00    drsr_d_t_s_msg2
+                               dcb              "shirts.", 0x00
+   85 000002A2 59 6F 75 
+              20 63 68 
+              65 63 6B 
+              20 69 6E 
+              20 20 20 
+              20 00    drsr_d_t_p_msg0
+                               dcb              "You check in    ", 0x00
+   86 000002B3 62 65 74 
+              77 65 65 
+              6E 20 73 
+              6F 6D 65 
+              20 6F 66 
+              20 00    drsr_d_t_p_msg1
+                               dcb              "between some of ", 0x00
+   87 000002C4 74 68 65 
+              20 70 61 
+              6E 74 73 
+              2E 00    drsr_d_t_p_msg2
+                               dcb              "the pants.", 0x00
+   88 000002CF 53 6F 20 
+              73 63 61 
+
+
+
+ARM Macro Assembler    Page 7 
+
+
+              6E 64 61 
+              6C 6F 75 
+              73 2E 2E 
+              2E 00    drsr_d_b_msg0
+                               dcb              "So scandalous...", 0x00
+   89 000002E0 54 68 69 
+              73 20 64 
+              72 61 77 
+              65 72 20 
+              69 73 20 
+              20 00    drsr_d_b_msg1
+                               dcb              "This drawer is  ", 0x00
+   90 000002F1 66 75 6C 
+              6C 20 6F 
+              66 20 73 
+              6F 63 6B 
+              73 2E 00 drsr_d_b_msg2
+                               dcb              "full of socks.", 0x00
+   91 00000300         
+   92 00000300         ; [MDL_bed] text
+   93 00000300 59 6F 75 
+              72 20 62 
+              65 64 2E 
+              20 59 6F 
+              75 27 76 
+              65 00    bed_msg0
+                               dcb              "Your bed. You've", 0x00
+   94 00000311 61 6C 77 
+              61 79 73 
+              20 72 65 
+              67 72 65 
+              74 74 65 
+              64 00    bed_msg1
+                               dcb              "always regretted", 0x00
+   95 00000322 67 65 74 
+              74 69 6E 
+              67 20 67 
+              72 65 65 
+              6E 20 20 
+              20 00    bed_msg2
+                               dcb              "getting green   ", 0x00
+   96 00000333 73 68 65 
+              65 74 73 
+              2E 00    bed_msg3
+                               dcb              "sheets.", 0x00
+   97 0000033B 41 3A 6F 
+              76 65 72 
+              20 20 20 
+              42 3A 75 
+              6E 64 65 
+              72 00    bed_mnu dcb              "A:over   B:under", 0x00
+   98 0000034C 59 6F 75 
+              72 20 6A 
+              61 63 6B 
+              65 74 20 
+              69 73 20 
+              20 00    bed_o_msg0
+                               dcb              "Your jacket is  ", 0x00
+   99 0000035D 6C 61 79 
+
+
+
+ARM Macro Assembler    Page 8 
+
+
+              69 6E 67 
+              20 63 72 
+              75 6D 70 
+              6C 65 64 
+              20 00    bed_o_msg1
+                               dcb              "laying crumpled ", 0x00
+  100 0000036E 6F 6E 20 
+              74 68 65 
+              20 62 65 
+              64 2E 00 bed_o_msg2
+                               dcb              "on the bed.", 0x00
+  101 0000037A 41 3A 6A 
+              63 6B 74 
+              20 20 42 
+              3A 62 6C 
+              6E 6B 74 
+              73 00    bed_o_mnu
+                               dcb              "A:jckt  B:blnkts", 0x00
+  102 0000038B 59 6F 75 
+              20 63 68 
+              65 63 6B 
+              20 61 6C 
+              6C 20 20 
+              20 00    bed_o_j_msg0
+                               dcb              "You check all   ", 0x00
+  103 0000039C 74 68 65 
+              20 70 6F 
+              63 6B 65 
+              74 73 2E 
+              2E 2E 00 bed_o_j_msg1
+                               dcb              "the pockets...", 0x00
+  104 000003AB 59 6F 75 
+              20 74 68 
+              72 6F 77 
+              20 79 6F 
+              75 72 20 
+              20 00    bed_o_b_msg0
+                               dcb              "You throw your  ", 0x00
+  105 000003BC 62 6C 61 
+              6E 6B 65 
+              74 73 20 
+              6F 6E 20 
+              74 68 65 
+              20 00    bed_o_b_msg1
+                               dcb              "blankets on the ", 0x00
+  106 000003CD 66 6C 6F 
+              6F 72 20 
+              69 6E 20 
+              61 20 20 
+              20 20 20 
+              20 00    bed_o_b_msg2
+                               dcb              "floor in a      ", 0x00
+  107 000003DE 68 75 72 
+              72 79 2E 
+              00       bed_o_b_msg3
+                               dcb              "hurry.", 0x00
+  108 000003E5 59 6F 75 
+              20 67 65 
+              74 20 6F 
+
+
+
+ARM Macro Assembler    Page 9 
+
+
+              6E 20 79 
+              6F 75 72 
+              20 00    bed_u_msg0
+                               dcb              "You get on your ", 0x00
+  109 000003F6 6B 6E 65 
+              65 73 20 
+              74 6F 20 
+              63 68 65 
+              63 6B 20 
+              20 00    bed_u_msg1
+                               dcb              "knees to check  ", 0x00
+  110 00000407 75 6E 64 
+              65 72 20 
+              79 6F 75 
+              72 20 62 
+              65 64 2E 
+              2E 00    bed_u_msg2
+                               dcb              "under your bed..", 0x00
+  111 00000418         
+  112 00000418 20 59 4F 
+              55 20 57 
+              49 4E 20 
+              20 20 20 
+              20 20 20 
+              20 00    tst_string6
+                               dcb              " YOU WIN        ", 0x00
+  113 00000429 20 43 4F 
+              4E 47 52 
+              41 54 53 
+              21 20 20 
+              20 20 20 
+              20 00    tst_string7
+                               dcb              " CONGRATS!      ", 0x00
+  114 0000043A         
+  115 0000043A 4C 6F 6F 
+              6B 73 20 
+              6C 69 6B 
+              65 20 79 
+              6F 75 20 
+              20 00    lose_msg0
+                               dcb              "Looks like you  ", 0x00
+  116 0000044B 72 61 6E 
+              20 6F 75 
+              74 20 6F 
+              66 20 74 
+              69 6D 65 
+              2E 00    lose_msg1
+                               dcb              "ran out of time.", 0x00
+  117 0000045C 59 6F 75 
+              27 6C 6C 
+              20 6E 65 
+              76 65 72 
+              20 67 65 
+              74 00    lose_msg2
+                               dcb              "You'll never get", 0x00
+  118 0000046D 74 6F 20 
+              63 6C 61 
+              73 73 20 
+              6F 6E 20 
+
+
+
+ARM Macro Assembler    Page 10 
+
+
+              74 69 6D 
+              65 00    lose_msg3
+                               dcb              "to class on time", 0x00
+  119 0000047E 6E 6F 77 
+              2E 2E 2E 
+              00       lose_msg4
+                               dcb              "now...", 0x00
+  120 00000485         
+  121 00000485 20 59 4F 
+              55 20 4C 
+              4F 53 45 
+              20 20 20 
+              20 20 20 
+              20 00    tst_string8
+                               dcb              " YOU LOSE       ", 0x00
+  122 00000496 20 2E 2E 
+              2E 4F 4F 
+              50 53 21 
+              20 20 20 
+              20 20 20 
+              20 00    tst_string9
+                               dcb              " ...OOPS!       ", 0x00
+  123 000004A7         
+  124 000004A7                 export           __main
+  125 000004A7         
+  126 000004A7         ; -----REGISTER VALUES-----
+  127 000004A7         ; r0 holds the DATA PORT OFFSET for the LCD
+  128 000004A7         ; r1 holds the EXTRA PORT OFFSET for the LCD
+  129 000004A7         ; r2 holds the INPUT PORT OFFSET for receiving the butto
+                       ns
+  130 000004A7         ; r5-r7 are used for passing variables into functions
+  131 000004A7         ; r10 and r11 are used for the basic text speeds
+  132 000004A7         ; r12 is used for returning values out of functions
+  133 000004A7         
+  134 000004A7         __main  proc
+  135 000004A7         
+  136 000004A7         ; initial set up
+  137 000004A7 00 F7FF 
+              FFFE             bl               BTN_init
+  138 000004AC F7FF FFFE       bl               LCD_init
+  139 000004B0         
+  140 000004B0         ; establish the global values
+  141 000004B0 F04F 0500       mov              r5, #0x00
+  142 000004B4 F04F 0600       mov              r6, #0x00
+  143 000004B8 F04F 0700       mov              r7, #0x00
+  144 000004BC F8DF A11C       ldr              r10, =talk_speed
+  145 000004C0 F8DF B11C       ldr              r11, =sys_speed
+  146 000004C4         
+  147 000004C4 4B47            ldr              r3, =estr_egg
+  148 000004C6 F04F 0400       mov              r4, #0x00
+  149 000004CA 701C            strb             r4, [r3]
+  150 000004CC         
+  151 000004CC 4B46            ldr              r3, =key_loc
+  152 000004CE F04F 0403       mov              r4, #0x03
+  153 000004D2 701C            strb             r4, [r3]
+  154 000004D4         
+  155 000004D4 4B45            ldr              r3, =fail_tms
+  156 000004D6 F04F 0400       mov              r4, #0x00
+  157 000004DA 701C            strb             r4, [r3]
+
+
+
+ARM Macro Assembler    Page 11 
+
+
+  158 000004DC         
+  159 000004DC         ; begin main segment
+  160 000004DC F7FF FFFE       bl               MDL_entry
+  161 000004E0         
+  162 000004E0 F04F 0500       mov              r5, #0x00
+  163 000004E4 F7FF FFFE       bl               LCD_clrln
+  164 000004E8 F04F 0501       mov              r5, #0x01
+  165 000004EC F7FF FFFE       bl               LCD_clrln
+  166 000004F0         
+  167 000004F0 F7FF FFFE 
+                       tst_lbl bl               MDL_chs
+  168 000004F4         
+  169 000004F4 F04F 0500       mov              r5, #0x00
+  170 000004F8 F7FF FFFE       bl               LCD_clrln
+  171 000004FC F04F 0501       mov              r5, #0x01
+  172 00000500 F7FF FFFE       bl               LCD_clrln
+  173 00000504         
+  174 00000504 F7FF FFFE       bl               inpt_wait
+  175 00000508         
+  176 00000508 4B38            ldr              r3, =fail_tms
+  177 0000050A 681C            ldr              r4, [r3]
+  178 0000050C         
+  179 0000050C 2C04            cmp              r4, #0x04
+  180 0000050E D012            beq              fail
+  181 00000510         
+  182 00000510 4B35            ldr              r3, =key_loc
+  183 00000512 681C            ldr              r4, [r3]
+  184 00000514 2C00            cmp              r4, #0x00
+  185 00000516 D1EB            bne              tst_lbl
+  186 00000518         
+  187 00000518         ; YOU WIN message
+  188 00000518 4D35            ldr              r5, =tst_string6
+  189 0000051A F8DB 6000       ldr              r6, [r11]
+  190 0000051E F04F 0700       mov              r7, #0x00
+  191 00000522 F7FF FFFE       bl               LCD_string
+  192 00000526         
+  193 00000526 4D33            ldr              r5, =tst_string7
+  194 00000528 F8DB 6000       ldr              r6, [r11]
+  195 0000052C F04F 0701       mov              r7, #0x01
+  196 00000530 F7FF FFFE       bl               LCD_string
+  197 00000534         
+  198 00000534 E051            b                stay
+  199 00000536         
+  200 00000536         fail                                 ; YOU LOSE message
+  201 00000536 4D30            ldr              r5, =lose_msg0
+  202 00000538 F8DA 6000       ldr              r6, [r10]
+  203 0000053C F04F 0700       mov              r7, #0x00
+  204 00000540 F7FF FFFE       bl               LCD_string
+  205 00000544         
+  206 00000544 4D2D            ldr              r5, =lose_msg1
+  207 00000546 F8DA 6000       ldr              r6, [r10]
+  208 0000054A F04F 0701       mov              r7, #0x01
+  209 0000054E F7FF FFFE       bl               LCD_string
+  210 00000552         
+  211 00000552 F7FF FFFE       bl               inpt_wait
+  212 00000556 F7FF FFFE       bl               LCD_clr
+  213 0000055A         
+  214 0000055A 4D28            ldr              r5, =lose_msg1
+  215 0000055C F04F 0600       mov              r6, #0x00
+
+
+
+ARM Macro Assembler    Page 12 
+
+
+  216 00000560 F04F 0700       mov              r7, #0x00
+  217 00000564 F7FF FFFE       bl               LCD_string
+  218 00000568         
+  219 00000568 4D25            ldr              r5, =lose_msg2
+  220 0000056A F8DA 6000       ldr              r6, [r10]
+  221 0000056E F04F 0701       mov              r7, #0x01
+  222 00000572 F7FF FFFE       bl               LCD_string
+  223 00000576         
+  224 00000576 F7FF FFFE       bl               LCD_clr
+  225 0000057A         
+  226 0000057A 4D21            ldr              r5, =lose_msg2
+  227 0000057C F04F 0600       mov              r6, #0x00
+  228 00000580 F04F 0700       mov              r7, #0x00
+  229 00000584 F7FF FFFE       bl               LCD_string
+  230 00000588         
+  231 00000588 4D1E            ldr              r5, =lose_msg3
+  232 0000058A F8DA 6000       ldr              r6, [r10]
+  233 0000058E F04F 0701       mov              r7, #0x01
+  234 00000592 F7FF FFFE       bl               LCD_string
+  235 00000596         
+  236 00000596 F7FF FFFE       bl               LCD_clr
+  237 0000059A         
+  238 0000059A 4D1A            ldr              r5, =lose_msg3
+  239 0000059C F04F 0600       mov              r6, #0x00
+  240 000005A0 F04F 0700       mov              r7, #0x00
+  241 000005A4 F7FF FFFE       bl               LCD_string
+  242 000005A8         
+  243 000005A8 4D17            ldr              r5, =lose_msg4
+  244 000005AA F8DA 6000       ldr              r6, [r10]
+  245 000005AE F04F 0701       mov              r7, #0x01
+  246 000005B2 F7FF FFFE       bl               LCD_string
+  247 000005B6         
+  248 000005B6 F7FF FFFE       bl               inpt_wait
+  249 000005BA F7FF FFFE       bl               LCD_clr
+  250 000005BE         
+  251 000005BE 4D13            ldr              r5, =tst_string8
+  252 000005C0 F8DB 6000       ldr              r6, [r11]
+  253 000005C4 F04F 0700       mov              r7, #0x00
+  254 000005C8 F7FF FFFE       bl               LCD_string
+  255 000005CC         
+  256 000005CC 4D10            ldr              r5, =tst_string9
+  257 000005CE F8DB 6000       ldr              r6, [r11]
+  258 000005D2 F04F 0701       mov              r7, #0x01
+  259 000005D6 F7FF FFFE       bl               LCD_string
+  260 000005DA         
+  261 000005DA E7FE    stay    b                stay
+  262 000005DC         
+  263 000005DC                 endp
+  264 000005DC 00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+
+
+
+ARM Macro Assembler    Page 13 
+
+
+              00000000 
+              00000000 
+              00000000         ltorg
+  265 00000614         
+  266 00000614         
+  267 00000614         ; [MDL_entry] stands for MODULE entry. This
+  268 00000614         ; is the function that handles the entrance of
+  269 00000614         ; the room.
+  270 00000614         MDL_entry
+                               function
+  271 00000614 B518            push             {r3, r4, lr}
+  272 00000616         
+  273 00000616         ; setting message
+  274 00000616 4D23            ldr              r5, =tst_string0
+  275 00000618 F8DB 6000       ldr              r6, [r11]
+  276 0000061C F04F 0700       mov              r7, #0x00
+  277 00000620 F7FF FFFE       bl               LCD_string
+  278 00000624         
+  279 00000624 4D20            ldr              r5, =tst_string1
+  280 00000626 F8DB 6000       ldr              r6, [r11]
+  281 0000062A F04F 0701       mov              r7, #0x01
+  282 0000062E F7FF FFFE       bl               LCD_string
+  283 00000632         
+  284 00000632 F7FF FFFE       bl               inpt_wait
+  285 00000636         
+  286 00000636 F04F 0500       mov              r5, #0x00
+  287 0000063A F7FF FFFE       bl               LCD_clr
+  288 0000063E         
+  289 0000063E         ; starting dialogue
+  290 0000063E         ; "Crap I'm gonna be late if I can't find my keys!"
+  291 0000063E 4D1B            ldr              r5, =tst_string2
+  292 00000640 F8DA 6000       ldr              r6, [r10]
+  293 00000644 F04F 0700       mov              r7, #0x00
+  294 00000648 F7FF FFFE       bl               LCD_string
+  295 0000064C         
+  296 0000064C 4D18            ldr              r5, =tst_string3
+  297 0000064E F8DA 6000       ldr              r6, [r10]
+  298 00000652 F04F 0701       mov              r7, #0x01
+  299 00000656 F7FF FFFE       bl               LCD_string
+  300 0000065A         
+  301 0000065A F7FF FFFE       bl               LCD_clr
+  302 0000065E         
+  303 0000065E 4D14            ldr              r5, =tst_string3
+  304 00000660 F04F 0600       mov              r6, #0x00
+  305 00000664 F04F 0700       mov              r7, #0x00
+  306 00000668 F7FF FFFE       bl               LCD_string
+  307 0000066C         
+  308 0000066C 4D11            ldr              r5, =tst_string4
+  309 0000066E F8DA 6000       ldr              r6, [r10]
+  310 00000672 F04F 0701       mov              r7, #0x01
+  311 00000676 F7FF FFFE       bl               LCD_string
+  312 0000067A         
+  313 0000067A F7FF FFFE       bl               LCD_clr
+  314 0000067E         
+  315 0000067E 4D0D            ldr              r5, =tst_string4
+  316 00000680 F04F 0600       mov              r6, #0x00
+  317 00000684 F04F 0700       mov              r7, #0x00
+  318 00000688 F7FF FFFE       bl               LCD_string
+  319 0000068C         
+
+
+
+ARM Macro Assembler    Page 14 
+
+
+  320 0000068C 4D0A            ldr              r5, =tst_string5
+  321 0000068E F8DA 6000       ldr              r6, [r10]
+  322 00000692 F04F 0701       mov              r7, #0x01
+  323 00000696 F7FF FFFE       bl               LCD_string
+  324 0000069A         
+  325 0000069A F7FF FFFE       bl               inpt_wait
+  326 0000069E         
+  327 0000069E E8BD 4018       pop              {r3, r4, lr}
+  328 000006A2 4770            bx               lr
+  329 000006A4                 endp
+  330 000006A4 00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000         ltorg
+  331 000006BC         
+  332 000006BC         MDL_chs function
+  333 000006BC B518            push             {r3, r4, lr}
+  334 000006BE         
+  335 000006BE 4D6C            ldr              r5, =chs_msg0
+  336 000006C0 F8DB 6000       ldr              r6, [r11]
+  337 000006C4 F04F 0700       mov              r7, #0x00
+  338 000006C8 F7FF FFFE       bl               LCD_string
+  339 000006CC         
+  340 000006CC 4D69            ldr              r5, =chs_msg1
+  341 000006CE F8DB 6000       ldr              r6, [r11]
+  342 000006D2 F04F 0701       mov              r7, #0x01
+  343 000006D6 F7FF FFFE       bl               LCD_string
+  344 000006DA         
+  345 000006DA F7FF FFFE       bl               inpt_wait
+  346 000006DE F7FF FFFE       bl               LCD_clr
+  347 000006E2         
+  348 000006E2         ; display menu
+  349 000006E2 4D64            ldr              r5, =chs_msg1 ; previous line
+  350 000006E4 F04F 0600       mov              r6, #0x00
+  351 000006E8 F04F 0700       mov              r7, #0x00
+  352 000006EC F7FF FFFE       bl               LCD_string
+  353 000006F0         
+  354 000006F0 4D61            ldr              r5, =chs_mnu ; actual menu
+  355 000006F2 F8DB 6000       ldr              r6, [r11]
+  356 000006F6 F04F 0701       mov              r7, #0x01
+  357 000006FA F7FF FFFE       bl               LCD_string
+  358 000006FE         
+  359 000006FE         ;  actual logic
+  360 000006FE 6813    chs0    ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  361 00000700 F003 0320       and              r3, #0x20   ; mask for button A
+                                                             specifically
+  362 00000704 2B00            cmp              r3, #0x00
+  363 00000706 D005            beq              chs1        ; jump to option TO
+                                                            P
+  364 00000708         
+  365 00000708 6813            ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  366 0000070A F003 0310       and              r3, #0x10   ; mask for button B
+                                                             specifically
+  367 0000070E 2B00            cmp              r3, #0x00
+  368 00000710 D005            beq              chs2        ; jump to option DR
+
+
+
+ARM Macro Assembler    Page 15 
+
+
+                                                            AWERS
+  369 00000712         
+  370 00000712 D1F4            bne              chs0        ; if not pressed
+  371 00000714         
+  372 00000714 F7FF FFFE 
+                       chs1    bl               LCD_clr
+  373 00000718 F7FF FFFE       bl               MDL_drsr
+  374 0000071C E003            b                chs_end
+  375 0000071E         
+  376 0000071E F7FF FFFE 
+                       chs2    bl               LCD_clr
+  377 00000722 F7FF FFFE       bl               MDL_bed
+  378 00000726         
+  379 00000726 E8BD 4018 
+                       chs_end pop              {r3, r4, lr}
+  380 0000072A 4770            bx               lr
+  381 0000072C                 endp
+  382 0000072C         
+  383 0000072C         ; [MDL_dresser] stands for MODULE dresser. This
+  384 0000072C         ; is the function that handles going to the
+  385 0000072C         ; dresser.
+  386 0000072C         MDL_drsr
+                               function
+  387 0000072C B518            push             {r3, r4, lr}
+  388 0000072E         
+  389 0000072E         ; Display dresser startup message
+  390 0000072E 4D53            ldr              r5, =drsr_msg
+  391 00000730 F8DB 6000       ldr              r6, [r11]
+  392 00000734 F04F 0700       mov              r7, #0x00
+  393 00000738 F7FF FFFE       bl               LCD_string
+  394 0000073C         
+  395 0000073C F7FF FFFE       bl               inpt_wait
+  396 00000740         
+  397 00000740         ; top or drawers
+  398 00000740         ;  display menu
+  399 00000740 4D4F            ldr              r5, =drsr_mnu
+  400 00000742 F8DB 6000       ldr              r6, [r11]
+  401 00000746 F04F 0701       mov              r7, #0x01
+  402 0000074A F7FF FFFE       bl               LCD_string
+  403 0000074E         
+  404 0000074E         ;  actual logic
+  405 0000074E 6813    drsr0   ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  406 00000750 F003 0320       and              r3, #0x20   ; mask for button A
+                                                             specifically
+  407 00000754 2B00            cmp              r3, #0x00
+  408 00000756 D006            beq              drsr_t0     ; jump to option TO
+                                                            P
+  409 00000758         
+  410 00000758 6813            ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  411 0000075A F003 0310       and              r3, #0x10   ; mask for button B
+                                                             specifically
+  412 0000075E 2B00            cmp              r3, #0x00
+  413 00000760 F000 8154       beq.w            drsr_d0     ; jump to option DR
+                                                            AWERS
+  414 00000764         
+  415 00000764 D1F3            bne              drsr0       ; if not pressed
+  416 00000766         
+
+
+
+ARM Macro Assembler    Page 16 
+
+
+  417 00000766         ; top
+  418 00000766         ;  display message
+  419 00000766 F7FF FFFE 
+                       drsr_t0 bl               LCD_clr
+  420 0000076A 4D46            ldr              r5, =drsr_t_msg0
+  421 0000076C F8DB 6000       ldr              r6, [r11]
+  422 00000770 F04F 0700       mov              r7, #0x00
+  423 00000774 F7FF FFFE       bl               LCD_string
+  424 00000778         
+  425 00000778 4D43            ldr              r5, =drsr_t_msg1
+  426 0000077A F8DB 6000       ldr              r6, [r11]
+  427 0000077E F04F 0701       mov              r7, #0x01
+  428 00000782 F7FF FFFE       bl               LCD_string
+  429 00000786         
+  430 00000786 F7FF FFFE       bl               LCD_clr
+  431 0000078A         
+  432 0000078A 4D3F            ldr              r5, =drsr_t_msg1
+  433 0000078C F04F 0600       mov              r6, #0x00
+  434 00000790 F04F 0700       mov              r7, #0x00
+  435 00000794 F7FF FFFE       bl               LCD_string
+  436 00000798         
+  437 00000798 4D3C            ldr              r5, =drsr_t_msg2
+  438 0000079A F8DB 6000       ldr              r6, [r11]
+  439 0000079E F04F 0701       mov              r7, #0x01
+  440 000007A2 F7FF FFFE       bl               LCD_string
+  441 000007A6         
+  442 000007A6 F7FF FFFE       bl               inpt_wait
+  443 000007AA F7FF FFFE       bl               LCD_clr
+  444 000007AE         
+  445 000007AE         ;  display menu
+  446 000007AE 4D37            ldr              r5, =drsr_t_msg2 
+                                                            ; previous line
+  447 000007B0 F04F 0600       mov              r6, #0x00
+  448 000007B4 F04F 0700       mov              r7, #0x00
+  449 000007B8 F7FF FFFE       bl               LCD_string
+  450 000007BC         
+  451 000007BC 4D34            ldr              r5, =drsr_t_mnu ; actual menu
+  452 000007BE F8DB 6000       ldr              r6, [r11]
+  453 000007C2 F04F 0701       mov              r7, #0x01
+  454 000007C6 F7FF FFFE       bl               LCD_string
+  455 000007CA         
+  456 000007CA         ;  actual logic
+  457 000007CA 6813    drsr_t1 ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  458 000007CC F003 0320       and              r3, #0x20   ; mask for button A
+                                                             specifically
+  459 000007D0 2B00            cmp              r3, #0x00
+  460 000007D2 D005            beq              drsr_t_a0   ; jump to option RA
+                                                            NDOM CRAP
+  461 000007D4         
+  462 000007D4 6813            ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  463 000007D6 F003 0310       and              r3, #0x10   ; mask for button B
+                                                             specifically
+  464 000007DA 2B00            cmp              r3, #0x00
+  465 000007DC D039            beq              drsr_t_b0   ; jump to HIDDEN OP
+                                                            TION
+  466 000007DE         
+  467 000007DE D1F4            bne              drsr_t1     ; if not pressed
+
+
+
+ARM Macro Assembler    Page 17 
+
+
+  468 000007E0         
+  469 000007E0         ; top A
+  470 000007E0 F7FF FFFE 
+                       drsr_t_a0
+                               bl               LCD_clr
+  471 000007E4 4D2B            ldr              r5, =drsr_t_a_msg0
+  472 000007E6 F8DB 6000       ldr              r6, [r11]
+  473 000007EA F04F 0700       mov              r7, #0x00
+  474 000007EE F7FF FFFE       bl               LCD_string
+  475 000007F2         
+  476 000007F2 4D29            ldr              r5, =drsr_t_a_msg1
+  477 000007F4 F8DB 6000       ldr              r6, [r11]
+  478 000007F8 F04F 0701       mov              r7, #0x01
+  479 000007FC F7FF FFFE       bl               LCD_string
+  480 00000800         
+  481 00000800 F7FF FFFE       bl               LCD_clr
+  482 00000804         
+  483 00000804 4D24            ldr              r5, =drsr_t_a_msg1
+  484 00000806 F04F 0600       mov              r6, #0x00
+  485 0000080A F04F 0700       mov              r7, #0x00
+  486 0000080E F7FF FFFE       bl               LCD_string
+  487 00000812         
+  488 00000812 4D22            ldr              r5, =drsr_t_a_msg2
+  489 00000814 F8DB 6000       ldr              r6, [r11]
+  490 00000818 F04F 0701       mov              r7, #0x01
+  491 0000081C F7FF FFFE       bl               LCD_string
+  492 00000820         
+  493 00000820 F7FF FFFE       bl               LCD_clr
+  494 00000824         
+  495 00000824 4D1D            ldr              r5, =drsr_t_a_msg2
+  496 00000826 F04F 0600       mov              r6, #0x00
+  497 0000082A F04F 0700       mov              r7, #0x00
+  498 0000082E F7FF FFFE       bl               LCD_string
+  499 00000832         
+  500 00000832 4D1B            ldr              r5, =drsr_t_a_msg3
+  501 00000834 F8DB 6000       ldr              r6, [r11]
+  502 00000838 F04F 0701       mov              r7, #0x01
+  503 0000083C F7FF FFFE       bl               LCD_string
+  504 00000840         
+  505 00000840         ; -----PATH END-----
+  506 00000840 F7FF FFFE       bl               inpt_wait
+  507 00000844 B420            push             {r5}
+  508 00000846 F04F 0501       mov              r5, 0x01
+  509 0000084A F7FF FFFE       bl               chk_key
+  510 0000084E BC20            pop              {r5}
+  511 00000850 E1FE            b                drsr_end
+  512 00000852         
+  513 00000852         ; top B (easter egg)
+  514 00000852         ;  check for easter egg
+  515 00000852 4B14    drsr_t_b0
+                               ldr              r3, =estr_egg ; check for easte
+                                                            r egg values
+  516 00000854 681C            ldr              r4, [r3]
+  517 00000856 F004 0401       and              r4, #0x01   ; mask for the dres
+                                                            ser easter egg spec
+                                                            ifically
+  518 0000085A 2C00            cmp              r4, #0x00
+  519 0000085C D024            beq              drsr_t_b_a0 ; jump to option NO
+                                                            T FOUND YET
+
+
+
+ARM Macro Assembler    Page 18 
+
+
+  520 0000085E         
+  521 0000085E 4B11            ldr              r3, =estr_egg ; check for easte
+                                                            r egg values
+  522 00000860 681C            ldr              r4, [r3]
+  523 00000862 F004 0401       and              r4, #0x01   ; mask for the dres
+                                                            ser easter egg spec
+                                                            ifically
+  524 00000866 2C01            cmp              r4, #0x01
+  525 00000868 F000 80C4       beq.w            drsr_t_b_b0 ; jump to option AL
+                                                            READY FOUND
+  526 0000086C         
+  527 0000086C E01C            b                lskip0
+  528 0000086E 00 00 00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000         ltorg
+  529 000008A8         lskip0
+  530 000008A8         
+  531 000008A8         ;  easter egg not found yet
+  532 000008A8 F7FF FFFE 
+                       drsr_t_b_a0
+                               bl               LCD_clr
+  533 000008AC 4DEA            ldr              r5, =drsr_t_b_msg_a0
+  534 000008AE F8DB 6000       ldr              r6, [r11]
+  535 000008B2 F04F 0700       mov              r7, #0x00
+  536 000008B6 F7FF FFFE       bl               LCD_string
+  537 000008BA         
+  538 000008BA 4DE8            ldr              r5, =drsr_t_b_msg_a1
+  539 000008BC F8DB 6000       ldr              r6, [r11]
+  540 000008C0 F04F 0701       mov              r7, #0x01
+  541 000008C4 F7FF FFFE       bl               LCD_string
+  542 000008C8         
+  543 000008C8 F7FF FFFE       bl               LCD_clr
+  544 000008CC         
+  545 000008CC 4DE3            ldr              r5, =drsr_t_b_msg_a1
+  546 000008CE F04F 0600       mov              r6, #0x00
+  547 000008D2 F04F 0700       mov              r7, #0x00
+  548 000008D6 F7FF FFFE       bl               LCD_string
+  549 000008DA         
+  550 000008DA 4DE1            ldr              r5, =drsr_t_b_msg_a2
+  551 000008DC F8DB 6000       ldr              r6, [r11]
+  552 000008E0 F04F 0701       mov              r7, #0x01
+  553 000008E4 F7FF FFFE       bl               LCD_string
+  554 000008E8         
+  555 000008E8 F7FF FFFE       bl               LCD_clr
+  556 000008EC         
+  557 000008EC 4DDC            ldr              r5, =drsr_t_b_msg_a2
+  558 000008EE F04F 0600       mov              r6, #0x00
+  559 000008F2 F04F 0700       mov              r7, #0x00
+
+
+
+ARM Macro Assembler    Page 19 
+
+
+  560 000008F6 F7FF FFFE       bl               LCD_string
+  561 000008FA         
+  562 000008FA 4DDA            ldr              r5, =drsr_t_b_msg_a3
+  563 000008FC F8DB 6000       ldr              r6, [r11]
+  564 00000900 F04F 0701       mov              r7, #0x01
+  565 00000904 F7FF FFFE       bl               LCD_string
+  566 00000908         
+  567 00000908 F7FF FFFE       bl               inpt_wait
+  568 0000090C F7FF FFFE       bl               LCD_clr
+  569 00000910         
+  570 00000910 4DD4            ldr              r5, =drsr_t_b_msg_a3
+  571 00000912 F04F 0600       mov              r6, #0x00
+  572 00000916 F04F 0700       mov              r7, #0x00
+  573 0000091A F7FF FFFE       bl               LCD_string
+  574 0000091E         
+  575 0000091E 4DD2            ldr              r5, =drsr_t_b_msg_a4
+  576 00000920 F8DB 6000       ldr              r6, [r11]
+  577 00000924 F04F 0701       mov              r7, #0x01
+  578 00000928 F7FF FFFE       bl               LCD_string
+  579 0000092C         
+  580 0000092C F7FF FFFE       bl               LCD_clr
+  581 00000930         
+  582 00000930 4DCD            ldr              r5, =drsr_t_b_msg_a4
+  583 00000932 F04F 0600       mov              r6, #0x00
+  584 00000936 F04F 0700       mov              r7, #0x00
+  585 0000093A F7FF FFFE       bl               LCD_string
+  586 0000093E         
+  587 0000093E 4DCB            ldr              r5, =drsr_t_b_msg_a5
+  588 00000940 F8DB 6000       ldr              r6, [r11]
+  589 00000944 F04F 0701       mov              r7, #0x01
+  590 00000948 F7FF FFFE       bl               LCD_string
+  591 0000094C         
+  592 0000094C F7FF FFFE       bl               inpt_wait
+  593 00000950 F7FF FFFE       bl               LCD_clr
+  594 00000954         
+  595 00000954 4DC5            ldr              r5, =drsr_t_b_msg_a5
+  596 00000956 F04F 0600       mov              r6, #0x00
+  597 0000095A F04F 0700       mov              r7, #0x00
+  598 0000095E F7FF FFFE       bl               LCD_string
+  599 00000962         
+  600 00000962 4DC3            ldr              r5, =drsr_t_b_msg_a6
+  601 00000964 F8DB 6000       ldr              r6, [r11]
+  602 00000968 F04F 0701       mov              r7, #0x01
+  603 0000096C F7FF FFFE       bl               LCD_string
+  604 00000970         
+  605 00000970 F7FF FFFE       bl               inpt_wait
+  606 00000974 F7FF FFFE       bl               LCD_clr
+  607 00000978         
+  608 00000978 4DBD            ldr              r5, =drsr_t_b_msg_a6
+  609 0000097A F04F 0600       mov              r6, #0x00
+  610 0000097E F04F 0700       mov              r7, #0x00
+  611 00000982 F7FF FFFE       bl               LCD_string
+  612 00000986         
+  613 00000986 4DBB            ldr              r5, =drsr_t_b_msg_a7
+  614 00000988 F8DB 6000       ldr              r6, [r11]
+  615 0000098C F04F 0701       mov              r7, #0x01
+  616 00000990 F7FF FFFE       bl               LCD_string
+  617 00000994         
+  618 00000994 F7FF FFFE       bl               inpt_wait
+
+
+
+ARM Macro Assembler    Page 20 
+
+
+  619 00000998 F7FF FFFE       bl               LCD_clr
+  620 0000099C         
+  621 0000099C 4DB5            ldr              r5, =drsr_t_b_msg_a7
+  622 0000099E F04F 0600       mov              r6, #0x00
+  623 000009A2 F04F 0700       mov              r7, #0x00
+  624 000009A6 F7FF FFFE       bl               LCD_string
+  625 000009AA         
+  626 000009AA 4DB3            ldr              r5, =drsr_t_b_msg_a8
+  627 000009AC F8DB 6000       ldr              r6, [r11]
+  628 000009B0 F04F 0701       mov              r7, #0x01
+  629 000009B4 F7FF FFFE       bl               LCD_string
+  630 000009B8         
+  631 000009B8 F7FF FFFE       bl               inpt_wait
+  632 000009BC F7FF FFFE       bl               LCD_clr
+  633 000009C0         
+  634 000009C0 4DAD            ldr              r5, =drsr_t_b_msg_a8
+  635 000009C2 F04F 0600       mov              r6, #0x00
+  636 000009C6 F04F 0700       mov              r7, #0x00
+  637 000009CA F7FF FFFE       bl               LCD_string
+  638 000009CE         
+  639 000009CE 4DAB            ldr              r5, =drsr_t_b_msg_a9
+  640 000009D0 F8DB 6000       ldr              r6, [r11]
+  641 000009D4 F04F 0701       mov              r7, #0x01
+  642 000009D8 F7FF FFFE       bl               LCD_string
+  643 000009DC         
+  644 000009DC F7FF FFFE       bl               inpt_wait
+  645 000009E0 F7FF FFFE       bl               LCD_clr
+  646 000009E4         
+  647 000009E4         ; SET DRSR_EGG TO 0x01
+  648 000009E4 4BA6            ldr              r3, =estr_egg
+  649 000009E6 681C            ldr              r4, [r3]
+  650 000009E8 F044 0401       orr              r4, #0x01
+  651 000009EC 601C            str              r4, [r3]
+  652 000009EE         
+  653 000009EE         ; -----PATH END-----
+  654 000009EE F7FF FFFE       bl               inpt_wait
+  655 000009F2 E12D            b                drsr_end
+  656 000009F4         
+  657 000009F4         ;  easter egg already found
+  658 000009F4 F7FF FFFE 
+                       drsr_t_b_b0
+                               bl               LCD_clr
+  659 000009F8 4DA2            ldr              r5, =drsr_t_b_msg_b0
+  660 000009FA F8DB 6000       ldr              r6, [r11]
+  661 000009FE F04F 0700       mov              r7, #0x00
+  662 00000A02 F7FF FFFE       bl               LCD_string
+  663 00000A06         
+  664 00000A06         ; -----PATH END-----
+  665 00000A06 F7FF FFFE       bl               inpt_wait
+  666 00000A0A E121            b                drsr_end
+  667 00000A0C         
+  668 00000A0C         ; top_drawer or bottom_drawer
+  669 00000A0C         ;  display message
+  670 00000A0C F7FF FFFE 
+                       drsr_d0 bl               LCD_clr
+  671 00000A10 4D9D            ldr              r5, =drsr_d_msg0
+  672 00000A12 F8DB 6000       ldr              r6, [r11]
+  673 00000A16 F04F 0700       mov              r7, #0x00
+  674 00000A1A F7FF FFFE       bl               LCD_string
+
+
+
+ARM Macro Assembler    Page 21 
+
+
+  675 00000A1E         
+  676 00000A1E 4D9B            ldr              r5, =drsr_d_msg1
+  677 00000A20 F8DB 6000       ldr              r6, [r11]
+  678 00000A24 F04F 0701       mov              r7, #0x01
+  679 00000A28 F7FF FFFE       bl               LCD_string
+  680 00000A2C         
+  681 00000A2C F7FF FFFE       bl               LCD_clr
+  682 00000A30         
+  683 00000A30 4D96            ldr              r5, =drsr_d_msg1
+  684 00000A32 F04F 0600       mov              r6, #0x00
+  685 00000A36 F04F 0700       mov              r7, #0x00
+  686 00000A3A F7FF FFFE       bl               LCD_string
+  687 00000A3E         
+  688 00000A3E 4D94            ldr              r5, =drsr_d_msg2
+  689 00000A40 F8DB 6000       ldr              r6, [r11]
+  690 00000A44 F04F 0701       mov              r7, #0x01
+  691 00000A48 F7FF FFFE       bl               LCD_string
+  692 00000A4C         
+  693 00000A4C F7FF FFFE       bl               LCD_clr
+  694 00000A50         
+  695 00000A50 4D8F            ldr              r5, =drsr_d_msg2
+  696 00000A52 F04F 0600       mov              r6, #0x00
+  697 00000A56 F04F 0700       mov              r7, #0x00
+  698 00000A5A F7FF FFFE       bl               LCD_string
+  699 00000A5E         
+  700 00000A5E 4D8D            ldr              r5, =drsr_d_msg3
+  701 00000A60 F8DB 6000       ldr              r6, [r11]
+  702 00000A64 F04F 0701       mov              r7, #0x01
+  703 00000A68 F7FF FFFE       bl               LCD_string
+  704 00000A6C         
+  705 00000A6C F7FF FFFE       bl               inpt_wait
+  706 00000A70 F7FF FFFE       bl               LCD_clr
+  707 00000A74         
+  708 00000A74         ;  display menu
+  709 00000A74 4D87            ldr              r5, =drsr_d_msg3 
+                                                            ; previous line
+  710 00000A76 F04F 0600       mov              r6, #0x00
+  711 00000A7A F04F 0700       mov              r7, #0x00
+  712 00000A7E F7FF FFFE       bl               LCD_string
+  713 00000A82         
+  714 00000A82 4D85            ldr              r5, =drsr_d_mnu ; actual menu
+  715 00000A84 F8DB 6000       ldr              r6, [r11]
+  716 00000A88 F04F 0701       mov              r7, #0x01
+  717 00000A8C F7FF FFFE       bl               LCD_string
+  718 00000A90         
+  719 00000A90         ;  actual logic
+  720 00000A90 6813    drsr_d1 ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  721 00000A92 F003 0320       and              r3, #0x20   ; mask for button A
+                                                             specifically
+  722 00000A96 2B00            cmp              r3, #0x00
+  723 00000A98 D006            beq              drsr_d_t0   ; jump to option TO
+                                                            P DRAWER
+  724 00000A9A         
+  725 00000A9A 6813            ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  726 00000A9C F003 0310       and              r3, #0x10   ; mask for button B
+                                                             specifically
+  727 00000AA0 2B00            cmp              r3, #0x00
+
+
+
+ARM Macro Assembler    Page 22 
+
+
+  728 00000AA2 F000 80A8       beq.w            drsr_d_b0   ; jump to option BO
+                                                            TTOM DRAWER
+  729 00000AA6         
+  730 00000AA6 D1F3            bne              drsr_d1     ; if not pressed
+  731 00000AA8         
+  732 00000AA8         ; top_drawer
+  733 00000AA8 F7FF FFFE 
+                       drsr_d_t0
+                               bl               LCD_clr
+  734 00000AAC 4D7B            ldr              r5, =drsr_d_t_msg0
+  735 00000AAE F8DB 6000       ldr              r6, [r11]
+  736 00000AB2 F04F 0700       mov              r7, #0x00
+  737 00000AB6 F7FF FFFE       bl               LCD_string
+  738 00000ABA         
+  739 00000ABA 4D79            ldr              r5, =drsr_d_t_msg1
+  740 00000ABC F8DB 6000       ldr              r6, [r11]
+  741 00000AC0 F04F 0701       mov              r7, #0x01
+  742 00000AC4 F7FF FFFE       bl               LCD_string
+  743 00000AC8         
+  744 00000AC8 F7FF FFFE       bl               LCD_clr
+  745 00000ACC         
+  746 00000ACC 4D74            ldr              r5, =drsr_d_t_msg1
+  747 00000ACE F04F 0600       mov              r6, #0x00
+  748 00000AD2 F04F 0700       mov              r7, #0x00
+  749 00000AD6 F7FF FFFE       bl               LCD_string
+  750 00000ADA         
+  751 00000ADA 4D72            ldr              r5, =drsr_d_t_msg2
+  752 00000ADC F8DB 6000       ldr              r6, [r11]
+  753 00000AE0 F04F 0701       mov              r7, #0x01
+  754 00000AE4 F7FF FFFE       bl               LCD_string
+  755 00000AE8         
+  756 00000AE8 F7FF FFFE       bl               LCD_clr
+  757 00000AEC         
+  758 00000AEC 4D6D            ldr              r5, =drsr_d_t_msg2
+  759 00000AEE F04F 0600       mov              r6, #0x00
+  760 00000AF2 F04F 0700       mov              r7, #0x00
+  761 00000AF6 F7FF FFFE       bl               LCD_string
+  762 00000AFA         
+  763 00000AFA 4D6B            ldr              r5, =drsr_d_t_msg3
+  764 00000AFC F8DB 6000       ldr              r6, [r11]
+  765 00000B00 F04F 0701       mov              r7, #0x01
+  766 00000B04 F7FF FFFE       bl               LCD_string
+  767 00000B08         
+  768 00000B08 F7FF FFFE       bl               inpt_wait
+  769 00000B0C F7FF FFFE       bl               LCD_clr
+  770 00000B10         
+  771 00000B10         ;  display menu
+  772 00000B10 4D65            ldr              r5, =drsr_d_t_msg3 
+                                                            ; previous line
+  773 00000B12 F04F 0600       mov              r6, #0x00
+  774 00000B16 F04F 0700       mov              r7, #0x00
+  775 00000B1A F7FF FFFE       bl               LCD_string
+  776 00000B1E         
+  777 00000B1E 4D63            ldr              r5, =drsr_d_t_mnu ; actual menu
+                                                            
+  778 00000B20 F8DB 6000       ldr              r6, [r11]
+  779 00000B24 F04F 0701       mov              r7, #0x01
+  780 00000B28 F7FF FFFE       bl               LCD_string
+  781 00000B2C         
+
+
+
+ARM Macro Assembler    Page 23 
+
+
+  782 00000B2C         ;  actual logic
+  783 00000B2C 6813    drsr_d_t1
+                               ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  784 00000B2E F003 0320       and              r3, #0x20   ; mask for button A
+                                                             specifically
+  785 00000B32 2B00            cmp              r3, #0x00
+  786 00000B34 D005            beq              drsr_d_t_s0 ; jump to option SH
+                                                            IRTS
+  787 00000B36         
+  788 00000B36 6813            ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  789 00000B38 F003 0310       and              r3, #0x10   ; mask for button B
+                                                             specifically
+  790 00000B3C 2B00            cmp              r3, #0x00
+  791 00000B3E D02D            beq              drsr_d_t_p0 ; jump to option PA
+                                                            NTS
+  792 00000B40         
+  793 00000B40 D1F4            bne              drsr_d_t1   ; if not pressed
+  794 00000B42         
+  795 00000B42         ; shirts
+  796 00000B42 F7FF FFFE 
+                       drsr_d_t_s0
+                               bl               LCD_clr
+  797 00000B46 4D5A            ldr              r5, =drsr_d_t_s_msg0
+  798 00000B48 F8DB 6000       ldr              r6, [r11]
+  799 00000B4C F04F 0700       mov              r7, #0x00
+  800 00000B50 F7FF FFFE       bl               LCD_string
+  801 00000B54         
+  802 00000B54 4D57            ldr              r5, =drsr_d_t_s_msg1
+  803 00000B56 F8DB 6000       ldr              r6, [r11]
+  804 00000B5A F04F 0701       mov              r7, #0x01
+  805 00000B5E F7FF FFFE       bl               LCD_string
+  806 00000B62         
+  807 00000B62 F7FF FFFE       bl               LCD_clr
+  808 00000B66         
+  809 00000B66 4D53            ldr              r5, =drsr_d_t_s_msg1
+  810 00000B68 F04F 0600       mov              r6, #0x00
+  811 00000B6C F04F 0700       mov              r7, #0x00
+  812 00000B70 F7FF FFFE       bl               LCD_string
+  813 00000B74         
+  814 00000B74 4D50            ldr              r5, =drsr_d_t_s_msg2
+  815 00000B76 F8DB 6000       ldr              r6, [r11]
+  816 00000B7A F04F 0701       mov              r7, #0x01
+  817 00000B7E F7FF FFFE       bl               LCD_string
+  818 00000B82         
+  819 00000B82 F7FF FFFE       bl               inpt_wait
+  820 00000B86 F7FF FFFE       bl               LCD_clr
+  821 00000B8A         
+  822 00000B8A         ; -----PATH END-----
+  823 00000B8A F7FF FFFE       bl               inpt_wait
+  824 00000B8E B420            push             {r5}
+  825 00000B90 F04F 0502       mov              r5, 0x02
+  826 00000B94 F7FF FFFE       bl               chk_key
+  827 00000B98 BC20            pop              {r5}
+  828 00000B9A E059            b                drsr_end
+  829 00000B9C         
+  830 00000B9C         ; pants
+  831 00000B9C F7FF FFFE 
+
+
+
+ARM Macro Assembler    Page 24 
+
+
+                       drsr_d_t_p0
+                               bl               LCD_clr
+  832 00000BA0 4D46            ldr              r5, =drsr_d_t_p_msg0
+  833 00000BA2 F8DB 6000       ldr              r6, [r11]
+  834 00000BA6 F04F 0700       mov              r7, #0x00
+  835 00000BAA F7FF FFFE       bl               LCD_string
+  836 00000BAE         
+  837 00000BAE 4D44            ldr              r5, =drsr_d_t_p_msg1
+  838 00000BB0 F8DB 6000       ldr              r6, [r11]
+  839 00000BB4 F04F 0701       mov              r7, #0x01
+  840 00000BB8 F7FF FFFE       bl               LCD_string
+  841 00000BBC         
+  842 00000BBC F7FF FFFE       bl               LCD_clr
+  843 00000BC0         
+  844 00000BC0 4D3F            ldr              r5, =drsr_d_t_p_msg1
+  845 00000BC2 F04F 0600       mov              r6, #0x00
+  846 00000BC6 F04F 0700       mov              r7, #0x00
+  847 00000BCA F7FF FFFE       bl               LCD_string
+  848 00000BCE         
+  849 00000BCE 4D3D            ldr              r5, =drsr_d_t_p_msg2
+  850 00000BD0 F8DB 6000       ldr              r6, [r11]
+  851 00000BD4 F04F 0701       mov              r7, #0x01
+  852 00000BD8 F7FF FFFE       bl               LCD_string
+  853 00000BDC         
+  854 00000BDC F7FF FFFE       bl               inpt_wait
+  855 00000BE0 F7FF FFFE       bl               LCD_clr
+  856 00000BE4         
+  857 00000BE4         ; -----PATH END-----
+  858 00000BE4 F7FF FFFE       bl               inpt_wait
+  859 00000BE8 B420            push             {r5}
+  860 00000BEA F04F 0503       mov              r5, 0x03
+  861 00000BEE F7FF FFFE       bl               chk_key
+  862 00000BF2 BC20            pop              {r5}
+  863 00000BF4 E02C            b                drsr_end
+  864 00000BF6         
+  865 00000BF6         ; bottom_drawer
+  866 00000BF6 F7FF FFFE 
+                       drsr_d_b0
+                               bl               LCD_clr
+  867 00000BFA 4D33            ldr              r5, =drsr_d_b_msg0
+  868 00000BFC F8DB 6000       ldr              r6, [r11]
+  869 00000C00 F04F 0700       mov              r7, #0x00
+  870 00000C04 F7FF FFFE       bl               LCD_string
+  871 00000C08         
+  872 00000C08 4D30            ldr              r5, =drsr_d_b_msg1
+  873 00000C0A F8DB 6000       ldr              r6, [r11]
+  874 00000C0E F04F 0701       mov              r7, #0x01
+  875 00000C12 F7FF FFFE       bl               LCD_string
+  876 00000C16         
+  877 00000C16 F7FF FFFE       bl               LCD_clr
+  878 00000C1A         
+  879 00000C1A 4D2C            ldr              r5, =drsr_d_b_msg1
+  880 00000C1C F04F 0600       mov              r6, #0x00
+  881 00000C20 F04F 0700       mov              r7, #0x00
+  882 00000C24 F7FF FFFE       bl               LCD_string
+  883 00000C28         
+  884 00000C28 4D29            ldr              r5, =drsr_d_b_msg2
+  885 00000C2A F8DB 6000       ldr              r6, [r11]
+  886 00000C2E F04F 0701       mov              r7, #0x01
+
+
+
+ARM Macro Assembler    Page 25 
+
+
+  887 00000C32 F7FF FFFE       bl               LCD_string
+  888 00000C36         
+  889 00000C36 F7FF FFFE       bl               inpt_wait
+  890 00000C3A F7FF FFFE       bl               LCD_clr
+  891 00000C3E         
+  892 00000C3E         ; -----PATH END-----
+  893 00000C3E F7FF FFFE       bl               inpt_wait
+  894 00000C42 B420            push             {r5}
+  895 00000C44 F04F 0504       mov              r5, 0x04
+  896 00000C48 F7FF FFFE       bl               chk_key
+  897 00000C4C BC20            pop              {r5}
+  898 00000C4E E7FF            b                drsr_end
+  899 00000C50         
+  900 00000C50         
+  901 00000C50 E8BD 4018 
+                       drsr_end
+                               pop              {r3, r4, lr}
+  902 00000C54 4770            bx               lr
+  903 00000C56                 endp
+  904 00000C56 00 00 00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000         ltorg
+  905 00000CD4         
+  906 00000CD4         MDL_bed function
+  907 00000CD4 B518            push             {r3, r4, lr}
+  908 00000CD6         
+  909 00000CD6 4D26            ldr              r5, =bed_msg0
+  910 00000CD8 F8DB 6000       ldr              r6, [r11]
+  911 00000CDC F04F 0700       mov              r7, #0x00
+  912 00000CE0 F7FF FFFE       bl               LCD_string
+  913 00000CE4         
+
+
+
+ARM Macro Assembler    Page 26 
+
+
+  914 00000CE4 4D23            ldr              r5, =bed_msg1
+  915 00000CE6 F8DB 6000       ldr              r6, [r11]
+  916 00000CEA F04F 0701       mov              r7, #0x01
+  917 00000CEE F7FF FFFE       bl               LCD_string
+  918 00000CF2         
+  919 00000CF2 F7FF FFFE       bl               LCD_clr
+  920 00000CF6         
+  921 00000CF6 4D1F            ldr              r5, =bed_msg1
+  922 00000CF8 F04F 0600       mov              r6, #0x00
+  923 00000CFC F04F 0700       mov              r7, #0x00
+  924 00000D00 F7FF FFFE       bl               LCD_string
+  925 00000D04         
+  926 00000D04 4D1C            ldr              r5, =bed_msg2
+  927 00000D06 F8DB 6000       ldr              r6, [r11]
+  928 00000D0A F04F 0701       mov              r7, #0x01
+  929 00000D0E F7FF FFFE       bl               LCD_string
+  930 00000D12         
+  931 00000D12 F7FF FFFE       bl               LCD_clr
+  932 00000D16         
+  933 00000D16 4D18            ldr              r5, =bed_msg2
+  934 00000D18 F04F 0600       mov              r6, #0x00
+  935 00000D1C F04F 0700       mov              r7, #0x00
+  936 00000D20 F7FF FFFE       bl               LCD_string
+  937 00000D24         
+  938 00000D24 4D15            ldr              r5, =bed_msg3
+  939 00000D26 F8DB 6000       ldr              r6, [r11]
+  940 00000D2A F04F 0701       mov              r7, #0x01
+  941 00000D2E F7FF FFFE       bl               LCD_string
+  942 00000D32         
+  943 00000D32 F7FF FFFE       bl               inpt_wait
+  944 00000D36 F7FF FFFE       bl               LCD_clr
+  945 00000D3A         
+  946 00000D3A         ; display menu
+  947 00000D3A 4D0F            ldr              r5, =bed_msg2 ; previous line
+  948 00000D3C F04F 0600       mov              r6, #0x00
+  949 00000D40 F04F 0700       mov              r7, #0x00
+  950 00000D44 F7FF FFFE       bl               LCD_string
+  951 00000D48         
+  952 00000D48 4D0D            ldr              r5, =bed_mnu ; actual menu
+  953 00000D4A F8DB 6000       ldr              r6, [r11]
+  954 00000D4E F04F 0701       mov              r7, #0x01
+  955 00000D52 F7FF FFFE       bl               LCD_string
+  956 00000D56         
+  957 00000D56         ;  actual logic
+  958 00000D56 6813    bed0    ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  959 00000D58 F003 0320       and              r3, #0x20   ; mask for button A
+                                                             specifically
+  960 00000D5C 2B00            cmp              r3, #0x00
+  961 00000D5E D011            beq              bed_o0      ; jump to option OV
+                                                            ER
+  962 00000D60         
+  963 00000D60 6813            ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+  964 00000D62 F003 0310       and              r3, #0x10   ; mask for button B
+                                                             specifically
+  965 00000D66 2B00            cmp              r3, #0x00
+  966 00000D68 F000 80A3       beq.w            bed_u0      ; jump to option UN
+                                                            DER
+
+
+
+ARM Macro Assembler    Page 27 
+
+
+  967 00000D6C         
+  968 00000D6C D1F3            bne              bed0        ; if not pressed
+  969 00000D6E 00 00 00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000         ltorg
+  970 00000D84         
+  971 00000D84 F7FF FFFE 
+                       bed_o0  bl               LCD_clr
+  972 00000D88 4DF3            ldr              r5, =bed_o_msg0
+  973 00000D8A F8DB 6000       ldr              r6, [r11]
+  974 00000D8E F04F 0700       mov              r7, #0x00
+  975 00000D92 F7FF FFFE       bl               LCD_string
+  976 00000D96         
+  977 00000D96 4DF1            ldr              r5, =bed_o_msg1
+  978 00000D98 F8DB 6000       ldr              r6, [r11]
+  979 00000D9C F04F 0701       mov              r7, #0x01
+  980 00000DA0 F7FF FFFE       bl               LCD_string
+  981 00000DA4         
+  982 00000DA4 F7FF FFFE       bl               LCD_clr
+  983 00000DA8         
+  984 00000DA8 4DEC            ldr              r5, =bed_o_msg1
+  985 00000DAA F04F 0600       mov              r6, #0x00
+  986 00000DAE F04F 0700       mov              r7, #0x00
+  987 00000DB2 F7FF FFFE       bl               LCD_string
+  988 00000DB6         
+  989 00000DB6 4DEA            ldr              r5, =bed_o_msg2
+  990 00000DB8 F8DB 6000       ldr              r6, [r11]
+  991 00000DBC F04F 0701       mov              r7, #0x01
+  992 00000DC0 F7FF FFFE       bl               LCD_string
+  993 00000DC4         
+  994 00000DC4 F7FF FFFE       bl               inpt_wait
+  995 00000DC8 F7FF FFFE       bl               LCD_clr
+  996 00000DCC         
+  997 00000DCC         ; display menu
+  998 00000DCC 4DE4            ldr              r5, =bed_o_msg2 ; previous line
+                                                            
+  999 00000DCE F04F 0600       mov              r6, #0x00
+ 1000 00000DD2 F04F 0700       mov              r7, #0x00
+ 1001 00000DD6 F7FF FFFE       bl               LCD_string
+ 1002 00000DDA         
+ 1003 00000DDA 4DE2            ldr              r5, =bed_o_mnu ; actual menu
+ 1004 00000DDC F8DB 6000       ldr              r6, [r11]
+ 1005 00000DE0 F04F 0701       mov              r7, #0x01
+ 1006 00000DE4 F7FF FFFE       bl               LCD_string
+ 1007 00000DE8         
+ 1008 00000DE8         ;  actual logic
+ 1009 00000DE8 6813    bed_o1  ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+ 1010 00000DEA F003 0320       and              r3, #0x20   ; mask for button A
+                                                             specifically
+ 1011 00000DEE 2B00            cmp              r3, #0x00
+ 1012 00000DF0 D005            beq              bed_o_j0    ; jump to option JA
+                                                            CKET
+ 1013 00000DF2         
+ 1014 00000DF2 6813            ldr              r3, [r2, #0x00] ; check for but
+                                                            ton inputs
+ 1015 00000DF4 F003 0310       and              r3, #0x10   ; mask for button B
+
+
+
+ARM Macro Assembler    Page 28 
+
+
+                                                             specifically
+ 1016 00000DF8 2B00            cmp              r3, #0x00
+ 1017 00000DFA D01D            beq              bed_o_b0    ; jump to option BL
+                                                            ANKETS
+ 1018 00000DFC         
+ 1019 00000DFC D1F4            bne              bed_o1      ; if not pressed
+ 1020 00000DFE         
+ 1021 00000DFE F7FF FFFE 
+                       bed_o_j0
+                               bl               LCD_clr
+ 1022 00000E02 4DD9            ldr              r5, =bed_o_j_msg0
+ 1023 00000E04 F8DB 6000       ldr              r6, [r11]
+ 1024 00000E08 F04F 0700       mov              r7, #0x00
+ 1025 00000E0C F7FF FFFE       bl               LCD_string
+ 1026 00000E10         
+ 1027 00000E10 4DD6            ldr              r5, =bed_o_j_msg1
+ 1028 00000E12 F8DB 6000       ldr              r6, [r11]
+ 1029 00000E16 F04F 0701       mov              r7, #0x01
+ 1030 00000E1A F7FF FFFE       bl               LCD_string
+ 1031 00000E1E         
+ 1032 00000E1E F7FF FFFE       bl               inpt_wait
+ 1033 00000E22 F7FF FFFE       bl               LCD_clr
+ 1034 00000E26         
+ 1035 00000E26         ; -----PATH END-----
+ 1036 00000E26 F7FF FFFE       bl               inpt_wait
+ 1037 00000E2A B420            push             {r5}
+ 1038 00000E2C F04F 0505       mov              r5, 0x05
+ 1039 00000E30 F7FF FFFE       bl               chk_key
+ 1040 00000E34 BC20            pop              {r5}
+ 1041 00000E36 E70B            b                drsr_end
+ 1042 00000E38         
+ 1043 00000E38 F7FF FFFE 
+                       bed_o_b0
+                               bl               LCD_clr
+ 1044 00000E3C 4DCC            ldr              r5, =bed_o_b_msg0
+ 1045 00000E3E F8DB 6000       ldr              r6, [r11]
+ 1046 00000E42 F04F 0700       mov              r7, #0x00
+ 1047 00000E46 F7FF FFFE       bl               LCD_string
+ 1048 00000E4A         
+ 1049 00000E4A 4DCA            ldr              r5, =bed_o_b_msg1
+ 1050 00000E4C F8DB 6000       ldr              r6, [r11]
+ 1051 00000E50 F04F 0701       mov              r7, #0x01
+ 1052 00000E54 F7FF FFFE       bl               LCD_string
+ 1053 00000E58         
+ 1054 00000E58 F7FF FFFE       bl               LCD_clr
+ 1055 00000E5C         
+ 1056 00000E5C 4DC5            ldr              r5, =bed_o_b_msg1
+ 1057 00000E5E F04F 0600       mov              r6, 0x00
+ 1058 00000E62 F04F 0700       mov              r7, #0x00
+ 1059 00000E66 F7FF FFFE       bl               LCD_string
+ 1060 00000E6A         
+ 1061 00000E6A 4DC3            ldr              r5, =bed_o_b_msg2
+ 1062 00000E6C F8DB 6000       ldr              r6, [r11]
+ 1063 00000E70 F04F 0701       mov              r7, #0x01
+ 1064 00000E74 F7FF FFFE       bl               LCD_string
+ 1065 00000E78         
+ 1066 00000E78 F7FF FFFE       bl               LCD_clr
+ 1067 00000E7C         
+ 1068 00000E7C 4DBE            ldr              r5, =bed_o_b_msg2
+
+
+
+ARM Macro Assembler    Page 29 
+
+
+ 1069 00000E7E F04F 0600       mov              r6, 0x00
+ 1070 00000E82 F04F 0700       mov              r7, #0x00
+ 1071 00000E86 F7FF FFFE       bl               LCD_string
+ 1072 00000E8A         
+ 1073 00000E8A 4DBC            ldr              r5, =bed_o_b_msg3
+ 1074 00000E8C F8DB 6000       ldr              r6, [r11]
+ 1075 00000E90 F04F 0701       mov              r7, #0x01
+ 1076 00000E94 F7FF FFFE       bl               LCD_string
+ 1077 00000E98         
+ 1078 00000E98 F7FF FFFE       bl               inpt_wait
+ 1079 00000E9C F7FF FFFE       bl               LCD_clr
+ 1080 00000EA0         
+ 1081 00000EA0         ; -----PATH END-----
+ 1082 00000EA0 F7FF FFFE       bl               inpt_wait
+ 1083 00000EA4 B420            push             {r5}
+ 1084 00000EA6 F04F 0506       mov              r5, 0x06
+ 1085 00000EAA F7FF FFFE       bl               chk_key
+ 1086 00000EAE BC20            pop              {r5}
+ 1087 00000EB0 E6CE            b                drsr_end
+ 1088 00000EB2         
+ 1089 00000EB2 F7FF FFFE 
+                       bed_u0  bl               LCD_clr
+ 1090 00000EB6 4DB2            ldr              r5, =bed_u_msg0
+ 1091 00000EB8 F8DB 6000       ldr              r6, [r11]
+ 1092 00000EBC F04F 0700       mov              r7, #0x00
+ 1093 00000EC0 F7FF FFFE       bl               LCD_string
+ 1094 00000EC4         
+ 1095 00000EC4 4DAF            ldr              r5, =bed_u_msg1
+ 1096 00000EC6 F8DB 6000       ldr              r6, [r11]
+ 1097 00000ECA F04F 0701       mov              r7, #0x01
+ 1098 00000ECE F7FF FFFE       bl               LCD_string
+ 1099 00000ED2         
+ 1100 00000ED2 F7FF FFFE       bl               LCD_clr
+ 1101 00000ED6         
+ 1102 00000ED6 4DAB            ldr              r5, =bed_u_msg1
+ 1103 00000ED8 F04F 0600       mov              r6, #0x00
+ 1104 00000EDC F04F 0700       mov              r7, #0x00
+ 1105 00000EE0 F7FF FFFE       bl               LCD_string
+ 1106 00000EE4         
+ 1107 00000EE4 4DA8            ldr              r5, =bed_u_msg2
+ 1108 00000EE6 F8DB 6000       ldr              r6, [r11]
+ 1109 00000EEA F04F 0701       mov              r7, #0x01
+ 1110 00000EEE F7FF FFFE       bl               LCD_string
+ 1111 00000EF2         
+ 1112 00000EF2 F7FF FFFE       bl               inpt_wait
+ 1113 00000EF6 F7FF FFFE       bl               LCD_clr
+ 1114 00000EFA         
+ 1115 00000EFA         ; -----PATH END-----
+ 1116 00000EFA F7FF FFFE       bl               inpt_wait
+ 1117 00000EFE B420            push             {r5}
+ 1118 00000F00 F04F 0507       mov              r5, 0x07
+ 1119 00000F04 F7FF FFFE       bl               chk_key
+ 1120 00000F08 BC20            pop              {r5}
+ 1121 00000F0A E7FF            b                bed_end
+ 1122 00000F0C         
+ 1123 00000F0C E8BD 4018 
+                       bed_end pop              {r3, r4, lr}
+ 1124 00000F10 4770            bx               lr
+ 1125 00000F12                 endp
+
+
+
+ARM Macro Assembler    Page 30 
+
+
+ 1126 00000F12         
+ 1127 00000F12         ; [LCD_string] prints out a whole string of characters t
+                       o
+ 1128 00000F12         ; the LCD screen on a particular line.
+ 1129 00000F12         ;  - r5 should be passed the base address in memory for 
+                       the
+ 1130 00000F12         ;    string of characters.
+ 1131 00000F12         ;  - r6 should be passed the amount of delay to use
+ 1132 00000F12         ;    in-between displaying characters
+ 1133 00000F12         ;  - r7 should be passed which line to write the string 
+                       to
+ 1134 00000F12         ;    (0 for top, 1 for bottom)
+ 1135 00000F12         LCD_string
+                               function
+ 1136 00000F12 B518            push             {r3, r4, lr}
+ 1137 00000F14         
+ 1138 00000F14 B420            push             {r5}
+ 1139 00000F16 F04F 05C0       mov              r5, #0xC0
+ 1140 00000F1A F7FF FFFE       bl               LCD_cmd
+ 1141 00000F1E BC20            pop              {r5}
+ 1142 00000F20         
+ 1143 00000F20 2F00            cmp              r7, #0x00
+ 1144 00000F22 D105            bne              LCD_string0
+ 1145 00000F24         
+ 1146 00000F24 B420            push             {r5}
+ 1147 00000F26 F04F 0580       mov              r5, #0x80
+ 1148 00000F2A F7FF FFFE       bl               LCD_cmd
+ 1149 00000F2E BC20            pop              {r5}
+ 1150 00000F30         
+ 1151 00000F30 F815 3B01 
+                       LCD_string0
+                               ldrb             r3, [r5], #0x01
+ 1152 00000F34         
+ 1153 00000F34 B420            push             {r5}
+ 1154 00000F36 461D            mov              r5, r3
+ 1155 00000F38 F7FF FFFE       bl               LCD_data
+ 1156 00000F3C BC20            pop              {r5}
+ 1157 00000F3E         
+ 1158 00000F3E 782C            ldrb             r4, [r5]
+ 1159 00000F40 2C00            cmp              r4, #0x00
+ 1160 00000F42 D1F5            bne              LCD_string0
+ 1161 00000F44         
+ 1162 00000F44 F000 F900       bl               cleanup
+ 1163 00000F48 E8BD 4018       pop              {r3, r4, lr}
+ 1164 00000F4C 4770            bx               lr
+ 1165 00000F4E                 endp
+ 1166 00000F4E         
+ 1167 00000F4E         ; [LCD_clr] clears the whole LCD screen.
+ 1168 00000F4E         LCD_clr function
+ 1169 00000F4E B520            push             {r5, lr}
+ 1170 00000F50         
+ 1171 00000F50 F04F 0501       mov              r5, #0x01
+ 1172 00000F54 F7FF FFFE       bl               LCD_cmd
+ 1173 00000F58         
+ 1174 00000F58 E8BD 4020       pop              {r5, lr}
+ 1175 00000F5C 4770            bx               lr
+ 1176 00000F5E                 endp
+ 1177 00000F5E         
+ 1178 00000F5E         ; [LCD_clrln] clears a single line on the LCD screen.
+
+
+
+ARM Macro Assembler    Page 31 
+
+
+ 1179 00000F5E         ;  - r5 should be passed which line to be cleared
+ 1180 00000F5E         ;    (0 for top, 1 for bottom)
+ 1181 00000F5E         LCD_clrln
+                               function
+ 1182 00000F5E B518            push             {r3, r4, lr}
+ 1183 00000F60         
+ 1184 00000F60 F04F 0380       mov              r3, #0x80
+ 1185 00000F64 2D00            cmp              r5, #0x00
+ 1186 00000F66 D001            beq              LCD_clrln0
+ 1187 00000F68 F04F 03C0       mov              r3, #0xC0   ; if r5 signals the
+                                                             bottom line
+ 1188 00000F6C         
+ 1189 00000F6C B420    LCD_clrln0
+                               push             {r5}
+ 1190 00000F6E 461D            mov              r5, r3
+ 1191 00000F70 F7FF FFFE       bl               LCD_cmd
+ 1192 00000F74 BC20            pop              {r5}
+ 1193 00000F76         
+ 1194 00000F76 F04F 0400       mov              r4, #0x00
+ 1195 00000F7A         
+ 1196 00000F7A B420    LCD_clrln1
+                               push             {r5}
+ 1197 00000F7C F04F 0520       mov              r5, #0x20
+ 1198 00000F80 F7FF FFFE       bl               LCD_data
+ 1199 00000F84 BC20            pop              {r5}
+ 1200 00000F86         
+ 1201 00000F86 F104 0401       add              r4, #0x01
+ 1202 00000F8A 2C10            cmp              r4, #0x10
+ 1203 00000F8C D1F5            bne              LCD_clrln1
+ 1204 00000F8E         
+ 1205 00000F8E E8BD 4018       pop              {r3, r4, lr}
+ 1206 00000F92 4770            bx               lr
+ 1207 00000F94                 endp
+ 1208 00000F94         
+ 1209 00000F94         ; [inpt_wait] is just a function that pauses the
+ 1210 00000F94         ; program until the player presses button A.
+ 1211 00000F94         inpt_wait
+                               function
+ 1212 00000F94 B518            push             {r3, r4, lr}
+ 1213 00000F96         
+ 1214 00000F96 6813    xx      ldr              r3, [r2, #0x00]
+ 1215 00000F98 F003 0320       and              r3, #0x20
+ 1216 00000F9C 2B00            cmp              r3, #0x00
+ 1217 00000F9E D1FA            bne              xx
+ 1218 00000FA0         
+ 1219 00000FA0 E8BD 4018       pop              {r3, r4, lr}
+ 1220 00000FA4 4770            bx               lr
+ 1221 00000FA6                 endp
+ 1222 00000FA6         
+ 1223 00000FA6         ; [chk_key] is a function that checks whether the
+ 1224 00000FA6         ; player finds the keys or not. If they do, it will
+ 1225 00000FA6         ; play the found keys dialogue and set =key_loc to
+ 1226 00000FA6         ; FOUND.
+ 1227 00000FA6         ;  - r5 should be passed the location flag for
+ 1228 00000FA6         ;    wherever the player is at currently. This
+ 1229 00000FA6         ;    will be checked against the =key_loc
+ 1230 00000FA6         ;    global variable to see whether the keys
+ 1231 00000FA6         ;    are in the given location.
+ 1232 00000FA6         chk_key function
+
+
+
+ARM Macro Assembler    Page 32 
+
+
+ 1233 00000FA6 E92D 4218       push             {r3, r4, r9, lr}
+ 1234 00000FAA         
+ 1235 00000FAA 4B78            ldr              r3, =key_loc
+ 1236 00000FAC 681C            ldr              r4, [r3]
+ 1237 00000FAE         
+ 1238 00000FAE EA05 0904       and              r9, r5, r4  ; mask the given lo
+                                                            cation with the key
+                                                             location
+ 1239 00000FB2 45A1            cmp              r9, r4
+ 1240 00000FB4 D14F            bne              chk_key0    ; if they aren't th
+                                                            e same, skip to the
+                                                             end
+ 1241 00000FB6         
+ 1242 00000FB6         ; set =key_loc to 0x00
+ 1243 00000FB6 F024 04FF       bic              r4, #0xFF
+ 1244 00000FBA 601C            str              r4, [r3]
+ 1245 00000FBC         
+ 1246 00000FBC         ; play found keys messages
+ 1247 00000FBC B420            push             {r5}
+ 1248 00000FBE F04F 0500       mov              r5, #0x00
+ 1249 00000FC2 F7FF FFFE       bl               LCD_clr
+ 1250 00000FC6 4D72            ldr              r5, =key_found_msg0 ; 0-4
+ 1251 00000FC8 F8DB 6000       ldr              r6, [r11]
+ 1252 00000FCC F04F 0700       mov              r7, #0x00
+ 1253 00000FD0 F7FF FFFE       bl               LCD_string
+ 1254 00000FD4         
+ 1255 00000FD4 4D6F            ldr              r5, =key_found_msg1
+ 1256 00000FD6 F8DB 6000       ldr              r6, [r11]
+ 1257 00000FDA F04F 0701       mov              r7, #0x01
+ 1258 00000FDE F7FF FFFE       bl               LCD_string
+ 1259 00000FE2         
+ 1260 00000FE2 F04F 0500       mov              r5, #0x00
+ 1261 00000FE6 F7FF FFFE       bl               LCD_clr
+ 1262 00000FEA         
+ 1263 00000FEA 4D6A            ldr              r5, =key_found_msg1
+ 1264 00000FEC F04F 0600       mov              r6, #0x00
+ 1265 00000FF0 F04F 0700       mov              r7, #0x00
+ 1266 00000FF4 F7FF FFFE       bl               LCD_string
+ 1267 00000FF8         
+ 1268 00000FF8 4D67            ldr              r5, =key_found_msg2
+ 1269 00000FFA F8DB 6000       ldr              r6, [r11]
+ 1270 00000FFE F04F 0701       mov              r7, #0x01
+ 1271 00001002 F7FF FFFE       bl               LCD_string
+ 1272 00001006         
+ 1273 00001006 F04F 0500       mov              r5, #0x00
+ 1274 0000100A F7FF FFFE       bl               LCD_clr
+ 1275 0000100E         
+ 1276 0000100E 4D62            ldr              r5, =key_found_msg2
+ 1277 00001010 F04F 0600       mov              r6, #0x00
+ 1278 00001014 F04F 0700       mov              r7, #0x00
+ 1279 00001018 F7FF FFFE       bl               LCD_string
+ 1280 0000101C         
+ 1281 0000101C 4D5F            ldr              r5, =key_found_msg3
+ 1282 0000101E F8DB 6000       ldr              r6, [r11]
+ 1283 00001022 F04F 0701       mov              r7, #0x01
+ 1284 00001026 F7FF FFFE       bl               LCD_string
+ 1285 0000102A         
+ 1286 0000102A F04F 0500       mov              r5, #0x00
+ 1287 0000102E F7FF FFFE       bl               LCD_clr
+
+
+
+ARM Macro Assembler    Page 33 
+
+
+ 1288 00001032         
+ 1289 00001032 4D5A            ldr              r5, =key_found_msg3
+ 1290 00001034 F04F 0600       mov              r6, #0x00
+ 1291 00001038 F04F 0700       mov              r7, #0x00
+ 1292 0000103C F7FF FFFE       bl               LCD_string
+ 1293 00001040         
+ 1294 00001040 4D57            ldr              r5, =key_found_msg4
+ 1295 00001042 F8DB 6000       ldr              r6, [r11]
+ 1296 00001046 F04F 0701       mov              r7, #0x01
+ 1297 0000104A F7FF FFFE       bl               LCD_string
+ 1298 0000104E BC20            pop              {r5}
+ 1299 00001050         
+ 1300 00001050 F7FF FFFE       bl               inpt_wait
+ 1301 00001054 E00F            b                chk_key_end
+ 1302 00001056         
+ 1303 00001056 F7FF FFFE 
+                       chk_key0
+                               bl               LCD_clr
+ 1304 0000105A 4D52            ldr              r5, =no_key_msg
+ 1305 0000105C F8DB 6000       ldr              r6, [r11]
+ 1306 00001060 F04F 0700       mov              r7, #0x00
+ 1307 00001064 F7FF FFFE       bl               LCD_string
+ 1308 00001068         
+ 1309 00001068 4B4F            ldr              r3, =fail_tms
+ 1310 0000106A 681C            ldr              r4, [r3]
+ 1311 0000106C F104 0401       add              r4, #0x01
+ 1312 00001070 601C            str              r4, [r3]
+ 1313 00001072         
+ 1314 00001072 F7FF FFFE       bl               inpt_wait
+ 1315 00001076         
+ 1316 00001076 E8BD 4218 
+                       chk_key_end
+                               pop              {r3, r4, r9, lr}
+ 1317 0000107A 4770            bx               lr
+ 1318 0000107C                 endp
+ 1319 0000107C         
+ 1320 0000107C         ; [BTN_init] initializes port 2 pins 2.4 and 2.5 to be I
+                       NPUTS.
+ 1321 0000107C         ; These two pins should be wired up to buttons so we can
+                       
+ 1322 0000107C         ; receive user input.
+ 1323 0000107C         BTN_init
+                               function
+ 1324 0000107C B508            push             {r3, lr}
+ 1325 0000107E         
+ 1326 0000107E 4A4B            ldr              r2, =0x40004C00
+ 1327 00001080 F102 0201       add              r2, #0x01
+ 1328 00001084         
+ 1329 00001084 F04F 0300       mov              r3, #0x00   ; X X 0 0  X X X X 
+                                                            = 0x00
+ 1330 00001088         ; Button A: 2.5 (mask of 0x20)
+ 1331 00001088         ; Button B: 2.4 (mask of 0x10)
+ 1332 00001088         
+ 1333 00001088 7113            strb             r3, [r2, #0x04]
+ 1334 0000108A         
+ 1335 0000108A E8BD 4008       pop              {r3, lr}
+ 1336 0000108E 4770            bx               lr
+ 1337 00001090                 endp
+ 1338 00001090         
+
+
+
+ARM Macro Assembler    Page 34 
+
+
+ 1339 00001090         ; [LCD_init] initializes ports 4 and 5 for use in contro
+                       lling
+ 1340 00001090         ; the LCD. After that, it sets up some initial settings,
+                       
+ 1341 00001090         ; turns the LCD on, then clears the screen.
+ 1342 00001090         LCD_init
+                               function
+ 1343 00001090 B50C            push             {r2, r3, lr}
+ 1344 00001092         
+ 1345 00001092 4846            ldr              r0, =0x40004C00 ; Get the base 
+                                                            address of GPIO pin
+                                                            s
+ 1346 00001094 F100 0021       add              r0, #0x21   ; Offsets us to the
+                                                             Port 4 base addres
+                                                            s (DATA PORT)
+ 1347 00001098         
+ 1348 00001098 4944            ldr              r1, =0x40004C00
+ 1349 0000109A F101 0140       add              r1, #0x40   ; Offsets us to the
+                                                             Port 5 base addres
+                                                            s (EXTRA PORT)
+ 1350 0000109E         
+ 1351 0000109E F04F 02FF       mov              r2, #0xFF   ; 1 1 1 1  1 1 1 1 
+                                                            = 0xFF
+ 1352 000010A2 F04F 03FF       mov              r3, #0xFF   ; 0 0 0 0  0 1 1 1 
+                                                            = 0x07
+ 1353 000010A6         ; ENABLE = 5.2
+ 1354 000010A6         ; RW     = 5.1
+ 1355 000010A6         ; RS     = 5.0
+ 1356 000010A6         ; 0 1 0 1  1 0 0 0 = 0x58
+ 1357 000010A6         
+ 1358 000010A6 7102            strb             r2, [r0, #0x04] ; Store the val
+                                                            ue(0xFF) to P4(DATA
+                                                             PORT) DATA DIRECTI
+                                                            ON BYTE
+ 1359 000010A8 710B            strb             r3, [r1, #0x04] ; Store the val
+                                                            ue(0x07) to P5(EXTR
+                                                            A PORT) DATA DIRECT
+                                                            ION BYTE
+ 1360 000010AA         
+ 1361 000010AA B420            push             {r5}
+ 1362 000010AC F04F 0538       mov              r5, #0x38   ; 8-bit data with 2
+                                                             lines and a 5x7 ch
+                                                            aracter matrix
+ 1363 000010B0 F7FF FFFE       bl               LCD_cmd
+ 1364 000010B4         
+ 1365 000010B4 F04F 050E       mov              r5, #0x0E   ; Turn on display a
+                                                            nd set cursor to bl
+                                                            ink
+ 1366 000010B8 F7FF FFFE       bl               LCD_cmd
+ 1367 000010BC         
+ 1368 000010BC F04F 0501       mov              r5, #0x01   ; Clears the LCD sc
+                                                            reen
+ 1369 000010C0 F7FF FFFE       bl               LCD_cmd
+ 1370 000010C4 BC20            pop              {r5}
+ 1371 000010C6         
+ 1372 000010C6 E8BD 400C       pop              {r2, r3, lr}
+ 1373 000010CA 4770            bx               lr
+ 1374 000010CC                 endp
+ 1375 000010CC         
+
+
+
+ARM Macro Assembler    Page 35 
+
+
+ 1376 000010CC         
+ 1377 000010CC         ; [LCD_cmd] is a useful function that sends a given comm
+                       and to
+ 1378 000010CC         ; the LCD display.
+ 1379 000010CC         ;  - r5 should be passed the command to send to the LCD
+ 1380 000010CC         LCD_cmd function
+ 1381 000010CC B518            push             {r3, r4, lr}
+ 1382 000010CE         
+ 1383 000010CE F7FF FFFE       bl               chk_bf
+ 1384 000010D2         
+ 1385 000010D2 F04F 0304       mov              r3, #0x04   ; 0  0  0  0   0  1
+                                                              0  0 = 0x04 (1 to
+                                                             ENABLE)
+ 1386 000010D6         ;                 E  RW RS
+ 1387 000010D6         
+ 1388 000010D6 7085            strb             r5, [r0, #0x02] ; send the comm
+                                                            and to the LCD
+ 1389 000010D8 708B            strb             r3, [r1, #0x02] ; set ENABLE to
+                                                             high
+ 1390 000010DA         
+ 1391 000010DA B420            push             {r5}
+ 1392 000010DC F44F 7580       mov              r5, #0x100
+ 1393 000010E0 F7FF FFFE       bl               delay
+ 1394 000010E4 BC20            pop              {r5}
+ 1395 000010E6         
+ 1396 000010E6 F04F 0300       mov              r3, #0x00   ; 0 0 0 0  0 0 0 0 
+                                                            = 0x00 (0 to ENABLE
+                                                            )
+ 1397 000010EA 708B            strb             r3, [r1, #0x02]
+ 1398 000010EC         
+ 1399 000010EC E8BD 4018       pop              {r3, r4, lr}
+ 1400 000010F0 4770            bx               lr          ; return
+ 1401 000010F2                 endp
+ 1402 000010F2         
+ 1403 000010F2         
+ 1404 000010F2         ; [LCD_data] is a useful function that sends a given ASC
+                       II
+ 1405 000010F2         ; character to the LCD and displays it.
+ 1406 000010F2         ;  - r5 should be passed the character to write to the
+ 1407 000010F2         ;    LCD screen.
+ 1408 000010F2         ;  - r6 should be passed the amount of time to delay
+ 1409 000010F2         ;    before writing the character
+ 1410 000010F2         LCD_data
+                               function
+ 1411 000010F2 B518            push             {r3, r4, lr}
+ 1412 000010F4         
+ 1413 000010F4 F44F 7480       mov              r4, #0x100  ; the default delay
+                                                             amount
+ 1414 000010F8 2E00            cmp              r6, #0x00   ; check whether som
+                                                            eone has passed in 
+                                                            a delay value
+ 1415 000010FA D000            beq              LCD_data0
+ 1416 000010FC 4634            mov              r4, r6
+ 1417 000010FE         
+ 1418 000010FE F7FF FFFE 
+                       LCD_data0
+                               bl               chk_bf
+ 1419 00001102         
+ 1420 00001102 F04F 0305       mov              r3, #0x05   ; 0 0 0 0  0 1 0 1 
+
+
+
+ARM Macro Assembler    Page 36 
+
+
+                                                            = 0x05 (1 to ENABLE
+                                                            )
+ 1421 00001106 7085            strb             r5, [r0, #0x02]
+ 1422 00001108 708B            strb             r3, [r1, #0x02]
+ 1423 0000110A         
+ 1424 0000110A B420            push             {r5}
+ 1425 0000110C 4625            mov              r5, r4
+ 1426 0000110E F7FF FFFE       bl               delay
+ 1427 00001112 BC20            pop              {r5}
+ 1428 00001114         
+ 1429 00001114 F04F 0301       mov              r3, #0x01   ; 0 0 0 0  0 0 0 1 
+                                                            = 0x01 (0 to ENABLE
+                                                            )
+ 1430 00001118 708B            strb             r3, [r1, #0x02]
+ 1431 0000111A         
+ 1432 0000111A E8BD 4018       pop              {r3, r4, lr}
+ 1433 0000111E 4770            bx               lr
+ 1434 00001120                 endp
+ 1435 00001120         
+ 1436 00001120         ; [chk_bf] delays the program until the LCD's
+ 1437 00001120         ; BUSY FLAG is set to 0. This indicates that the
+ 1438 00001120         ; LCD has completed any functions previously given
+ 1439 00001120         ; to it.
+ 1440 00001120         chk_bf  function
+ 1441 00001120 E92D 5018       push             {r3, r4, r12, lr}
+ 1442 00001124         
+ 1443 00001124 B420            push             {r5}
+ 1444 00001126 F44F 65A0       mov              r5, #0x500
+ 1445 0000112A F7FF FFFE       bl               delay
+ 1446 0000112E BC20            pop              {r5}
+ 1447 00001130         
+ 1448 00001130 E8BD 5018       pop              {r3, r4, r12, lr}
+ 1449 00001134 4770            bx               lr          ; return
+ 1450 00001136         
+ 1451 00001136                 endp
+ 1452 00001136         
+ 1453 00001136         ; [delay] is a really basic delay function
+ 1454 00001136         ;  - r5 should be passed the number to count down
+ 1455 00001136         ;    from over the course of the function.
+ 1456 00001136         delay   function
+ 1457 00001136 B508            push             {r3, lr}
+ 1458 00001138         
+ 1459 00001138 462B            mov              r3, r5      ; some big number f
+                                                            or the delay
+ 1460 0000113A         
+ 1461 0000113A F1A3 0301 
+                       delay0  sub              r3, #0x01
+ 1462 0000113E 2B00            cmp              r3, #0x00   ; if (r3 - 0) is no
+                                                            t equal to 0...
+ 1463 00001140 D1FB            bne              delay0      ; ...repeat the loo
+                                                            p
+ 1464 00001142         
+ 1465 00001142 E8BD 4008       pop              {r3, lr}
+ 1466 00001146 4770            bx               lr          ; otherwise go back
+                                                             to where we left o
+                                                            ff
+ 1467 00001148                 endp
+ 1468 00001148         
+ 1469 00001148 F04F 0500 
+
+
+
+ARM Macro Assembler    Page 37 
+
+
+                       cleanup mov              r5, #0x00
+ 1470 0000114C F04F 0600       mov              r6, #0x00
+ 1471 00001150 F04F 0700       mov              r7, #0x00
+ 1472 00001154 4770            bx               lr
+ 1473 00001156         
+ 1474 00001156                 end
+              00 00 00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              40004C00 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp.sp --apcs=
+interwork --depend=.\objects\labfinal.d -o.\objects\labfinal.o -I.\RTE\_Target_
+1 -IC:\Users\Owner\AppData\Local\Arm\Packs\ARM\CMSIS\5.8.0\CMSIS\Core\Include -
+IC:\Users\Owner\AppData\Local\Arm\Packs\TexasInstruments\MSP432P4xx_DFP\3.2.6\D
+evice\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 5
+35" --predefine="_RTE_ SETA 1" --predefine="_RTE_ SETA 1" --predefine="__MSP432
+P401R__ SETA 1" --list=.\listings\labfinal.lst LabFinal.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+estr_egg 00000000
+
+Symbol: estr_egg
+   Definitions
+      At line 7 in file LabFinal.s
+   Uses
+      At line 147 in file LabFinal.s
+      At line 515 in file LabFinal.s
+      At line 521 in file LabFinal.s
+      At line 648 in file LabFinal.s
+
+fail_tms 00000002
+
+Symbol: fail_tms
+   Definitions
+      At line 20 in file LabFinal.s
+   Uses
+      At line 155 in file LabFinal.s
+      At line 176 in file LabFinal.s
+      At line 1309 in file LabFinal.s
+
+key_loc 00000001
+
+Symbol: key_loc
+   Definitions
+      At line 18 in file LabFinal.s
+   Uses
+      At line 151 in file LabFinal.s
+      At line 182 in file LabFinal.s
+      At line 1235 in file LabFinal.s
+
+lab10_variables 00000000
+
+Symbol: lab10_variables
+   Definitions
+      At line 1 in file LabFinal.s
+   Uses
+      None
+Comment: lab10_variables unused
+4 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+BTN_init 0000107C
+
+Symbol: BTN_init
+   Definitions
+      At line 1323 in file LabFinal.s
+   Uses
+      At line 137 in file LabFinal.s
+Comment: BTN_init used once
+LCD_clr 00000F4E
+
+Symbol: LCD_clr
+   Definitions
+      At line 1168 in file LabFinal.s
+   Uses
+      At line 212 in file LabFinal.s
+      At line 224 in file LabFinal.s
+      At line 236 in file LabFinal.s
+      At line 249 in file LabFinal.s
+      At line 287 in file LabFinal.s
+      At line 301 in file LabFinal.s
+      At line 313 in file LabFinal.s
+      At line 346 in file LabFinal.s
+      At line 372 in file LabFinal.s
+      At line 376 in file LabFinal.s
+      At line 419 in file LabFinal.s
+      At line 430 in file LabFinal.s
+      At line 443 in file LabFinal.s
+      At line 470 in file LabFinal.s
+      At line 481 in file LabFinal.s
+      At line 493 in file LabFinal.s
+      At line 532 in file LabFinal.s
+      At line 543 in file LabFinal.s
+      At line 555 in file LabFinal.s
+      At line 568 in file LabFinal.s
+      At line 580 in file LabFinal.s
+      At line 593 in file LabFinal.s
+      At line 606 in file LabFinal.s
+      At line 619 in file LabFinal.s
+      At line 632 in file LabFinal.s
+      At line 645 in file LabFinal.s
+      At line 658 in file LabFinal.s
+      At line 670 in file LabFinal.s
+      At line 681 in file LabFinal.s
+      At line 693 in file LabFinal.s
+      At line 706 in file LabFinal.s
+      At line 733 in file LabFinal.s
+      At line 744 in file LabFinal.s
+      At line 756 in file LabFinal.s
+      At line 769 in file LabFinal.s
+      At line 796 in file LabFinal.s
+      At line 807 in file LabFinal.s
+      At line 820 in file LabFinal.s
+      At line 831 in file LabFinal.s
+      At line 842 in file LabFinal.s
+      At line 855 in file LabFinal.s
+      At line 866 in file LabFinal.s
+      At line 877 in file LabFinal.s
+      At line 890 in file LabFinal.s
+      At line 919 in file LabFinal.s
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 931 in file LabFinal.s
+      At line 944 in file LabFinal.s
+      At line 971 in file LabFinal.s
+      At line 982 in file LabFinal.s
+      At line 995 in file LabFinal.s
+      At line 1021 in file LabFinal.s
+      At line 1033 in file LabFinal.s
+      At line 1043 in file LabFinal.s
+      At line 1054 in file LabFinal.s
+      At line 1066 in file LabFinal.s
+      At line 1079 in file LabFinal.s
+      At line 1089 in file LabFinal.s
+      At line 1100 in file LabFinal.s
+      At line 1113 in file LabFinal.s
+      At line 1249 in file LabFinal.s
+      At line 1261 in file LabFinal.s
+      At line 1274 in file LabFinal.s
+      At line 1287 in file LabFinal.s
+      At line 1303 in file LabFinal.s
+
+LCD_clrln 00000F5E
+
+Symbol: LCD_clrln
+   Definitions
+      At line 1181 in file LabFinal.s
+   Uses
+      At line 163 in file LabFinal.s
+      At line 165 in file LabFinal.s
+      At line 170 in file LabFinal.s
+      At line 172 in file LabFinal.s
+
+LCD_clrln0 00000F6C
+
+Symbol: LCD_clrln0
+   Definitions
+      At line 1189 in file LabFinal.s
+   Uses
+      At line 1186 in file LabFinal.s
+Comment: LCD_clrln0 used once
+LCD_clrln1 00000F7A
+
+Symbol: LCD_clrln1
+   Definitions
+      At line 1196 in file LabFinal.s
+   Uses
+      At line 1203 in file LabFinal.s
+Comment: LCD_clrln1 used once
+LCD_cmd 000010CC
+
+Symbol: LCD_cmd
+   Definitions
+      At line 1380 in file LabFinal.s
+   Uses
+      At line 1140 in file LabFinal.s
+      At line 1148 in file LabFinal.s
+      At line 1172 in file LabFinal.s
+      At line 1191 in file LabFinal.s
+      At line 1363 in file LabFinal.s
+      At line 1366 in file LabFinal.s
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 1369 in file LabFinal.s
+
+LCD_data 000010F2
+
+Symbol: LCD_data
+   Definitions
+      At line 1410 in file LabFinal.s
+   Uses
+      At line 1155 in file LabFinal.s
+      At line 1198 in file LabFinal.s
+
+LCD_data0 000010FE
+
+Symbol: LCD_data0
+   Definitions
+      At line 1418 in file LabFinal.s
+   Uses
+      At line 1415 in file LabFinal.s
+Comment: LCD_data0 used once
+LCD_init 00001090
+
+Symbol: LCD_init
+   Definitions
+      At line 1342 in file LabFinal.s
+   Uses
+      At line 138 in file LabFinal.s
+Comment: LCD_init used once
+LCD_string 00000F12
+
+Symbol: LCD_string
+   Definitions
+      At line 1135 in file LabFinal.s
+   Uses
+      At line 191 in file LabFinal.s
+      At line 196 in file LabFinal.s
+      At line 204 in file LabFinal.s
+      At line 209 in file LabFinal.s
+      At line 217 in file LabFinal.s
+      At line 222 in file LabFinal.s
+      At line 229 in file LabFinal.s
+      At line 234 in file LabFinal.s
+      At line 241 in file LabFinal.s
+      At line 246 in file LabFinal.s
+      At line 254 in file LabFinal.s
+      At line 259 in file LabFinal.s
+      At line 277 in file LabFinal.s
+      At line 282 in file LabFinal.s
+      At line 294 in file LabFinal.s
+      At line 299 in file LabFinal.s
+      At line 306 in file LabFinal.s
+      At line 311 in file LabFinal.s
+      At line 318 in file LabFinal.s
+      At line 323 in file LabFinal.s
+      At line 338 in file LabFinal.s
+      At line 343 in file LabFinal.s
+      At line 352 in file LabFinal.s
+      At line 357 in file LabFinal.s
+      At line 393 in file LabFinal.s
+      At line 402 in file LabFinal.s
+
+
+
+ARM Macro Assembler    Page 4 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 423 in file LabFinal.s
+      At line 428 in file LabFinal.s
+      At line 435 in file LabFinal.s
+      At line 440 in file LabFinal.s
+      At line 449 in file LabFinal.s
+      At line 454 in file LabFinal.s
+      At line 474 in file LabFinal.s
+      At line 479 in file LabFinal.s
+      At line 486 in file LabFinal.s
+      At line 491 in file LabFinal.s
+      At line 498 in file LabFinal.s
+      At line 503 in file LabFinal.s
+      At line 536 in file LabFinal.s
+      At line 541 in file LabFinal.s
+      At line 548 in file LabFinal.s
+      At line 553 in file LabFinal.s
+      At line 560 in file LabFinal.s
+      At line 565 in file LabFinal.s
+      At line 573 in file LabFinal.s
+      At line 578 in file LabFinal.s
+      At line 585 in file LabFinal.s
+      At line 590 in file LabFinal.s
+      At line 598 in file LabFinal.s
+      At line 603 in file LabFinal.s
+      At line 611 in file LabFinal.s
+      At line 616 in file LabFinal.s
+      At line 624 in file LabFinal.s
+      At line 629 in file LabFinal.s
+      At line 637 in file LabFinal.s
+      At line 642 in file LabFinal.s
+      At line 662 in file LabFinal.s
+      At line 674 in file LabFinal.s
+      At line 679 in file LabFinal.s
+      At line 686 in file LabFinal.s
+      At line 691 in file LabFinal.s
+      At line 698 in file LabFinal.s
+      At line 703 in file LabFinal.s
+      At line 712 in file LabFinal.s
+      At line 717 in file LabFinal.s
+      At line 737 in file LabFinal.s
+      At line 742 in file LabFinal.s
+      At line 749 in file LabFinal.s
+      At line 754 in file LabFinal.s
+      At line 761 in file LabFinal.s
+      At line 766 in file LabFinal.s
+      At line 775 in file LabFinal.s
+      At line 780 in file LabFinal.s
+      At line 800 in file LabFinal.s
+      At line 805 in file LabFinal.s
+      At line 812 in file LabFinal.s
+      At line 817 in file LabFinal.s
+      At line 835 in file LabFinal.s
+      At line 840 in file LabFinal.s
+      At line 847 in file LabFinal.s
+      At line 852 in file LabFinal.s
+      At line 870 in file LabFinal.s
+      At line 875 in file LabFinal.s
+      At line 882 in file LabFinal.s
+      At line 887 in file LabFinal.s
+
+
+
+ARM Macro Assembler    Page 5 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 912 in file LabFinal.s
+      At line 917 in file LabFinal.s
+      At line 924 in file LabFinal.s
+      At line 929 in file LabFinal.s
+      At line 936 in file LabFinal.s
+      At line 941 in file LabFinal.s
+      At line 950 in file LabFinal.s
+      At line 955 in file LabFinal.s
+      At line 975 in file LabFinal.s
+      At line 980 in file LabFinal.s
+      At line 987 in file LabFinal.s
+      At line 992 in file LabFinal.s
+      At line 1001 in file LabFinal.s
+      At line 1006 in file LabFinal.s
+      At line 1025 in file LabFinal.s
+      At line 1030 in file LabFinal.s
+      At line 1047 in file LabFinal.s
+      At line 1052 in file LabFinal.s
+      At line 1059 in file LabFinal.s
+      At line 1064 in file LabFinal.s
+      At line 1071 in file LabFinal.s
+      At line 1076 in file LabFinal.s
+      At line 1093 in file LabFinal.s
+      At line 1098 in file LabFinal.s
+      At line 1105 in file LabFinal.s
+      At line 1110 in file LabFinal.s
+      At line 1253 in file LabFinal.s
+      At line 1258 in file LabFinal.s
+      At line 1266 in file LabFinal.s
+      At line 1271 in file LabFinal.s
+      At line 1279 in file LabFinal.s
+      At line 1284 in file LabFinal.s
+      At line 1292 in file LabFinal.s
+      At line 1297 in file LabFinal.s
+      At line 1307 in file LabFinal.s
+
+LCD_string0 00000F30
+
+Symbol: LCD_string0
+   Definitions
+      At line 1151 in file LabFinal.s
+   Uses
+      At line 1144 in file LabFinal.s
+      At line 1160 in file LabFinal.s
+
+MDL_bed 00000CD4
+
+Symbol: MDL_bed
+   Definitions
+      At line 906 in file LabFinal.s
+   Uses
+      At line 377 in file LabFinal.s
+Comment: MDL_bed used once
+MDL_chs 000006BC
+
+Symbol: MDL_chs
+   Definitions
+      At line 332 in file LabFinal.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 6 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 167 in file LabFinal.s
+Comment: MDL_chs used once
+MDL_drsr 0000072C
+
+Symbol: MDL_drsr
+   Definitions
+      At line 386 in file LabFinal.s
+   Uses
+      At line 373 in file LabFinal.s
+Comment: MDL_drsr used once
+MDL_entry 00000614
+
+Symbol: MDL_entry
+   Definitions
+      At line 270 in file LabFinal.s
+   Uses
+      At line 160 in file LabFinal.s
+Comment: MDL_entry used once
+__main 000004A8
+
+Symbol: __main
+   Definitions
+      At line 134 in file LabFinal.s
+   Uses
+      At line 124 in file LabFinal.s
+Comment: __main used once
+bed0 00000D56
+
+Symbol: bed0
+   Definitions
+      At line 958 in file LabFinal.s
+   Uses
+      At line 968 in file LabFinal.s
+Comment: bed0 used once
+bed_end 00000F0C
+
+Symbol: bed_end
+   Definitions
+      At line 1123 in file LabFinal.s
+   Uses
+      At line 1121 in file LabFinal.s
+Comment: bed_end used once
+bed_mnu 0000033B
+
+Symbol: bed_mnu
+   Definitions
+      At line 97 in file LabFinal.s
+   Uses
+      At line 952 in file LabFinal.s
+Comment: bed_mnu used once
+bed_msg0 00000300
+
+Symbol: bed_msg0
+   Definitions
+      At line 93 in file LabFinal.s
+   Uses
+      At line 909 in file LabFinal.s
+Comment: bed_msg0 used once
+bed_msg1 00000311
+
+
+
+ARM Macro Assembler    Page 7 Alphabetic symbol ordering
+Relocatable symbols
+
+
+Symbol: bed_msg1
+   Definitions
+      At line 94 in file LabFinal.s
+   Uses
+      At line 914 in file LabFinal.s
+      At line 921 in file LabFinal.s
+
+bed_msg2 00000322
+
+Symbol: bed_msg2
+   Definitions
+      At line 95 in file LabFinal.s
+   Uses
+      At line 926 in file LabFinal.s
+      At line 933 in file LabFinal.s
+      At line 947 in file LabFinal.s
+
+bed_msg3 00000333
+
+Symbol: bed_msg3
+   Definitions
+      At line 96 in file LabFinal.s
+   Uses
+      At line 938 in file LabFinal.s
+Comment: bed_msg3 used once
+bed_o0 00000D84
+
+Symbol: bed_o0
+   Definitions
+      At line 971 in file LabFinal.s
+   Uses
+      At line 961 in file LabFinal.s
+Comment: bed_o0 used once
+bed_o1 00000DE8
+
+Symbol: bed_o1
+   Definitions
+      At line 1009 in file LabFinal.s
+   Uses
+      At line 1019 in file LabFinal.s
+Comment: bed_o1 used once
+bed_o_b0 00000E38
+
+Symbol: bed_o_b0
+   Definitions
+      At line 1043 in file LabFinal.s
+   Uses
+      At line 1017 in file LabFinal.s
+Comment: bed_o_b0 used once
+bed_o_b_msg0 000003AB
+
+Symbol: bed_o_b_msg0
+   Definitions
+      At line 104 in file LabFinal.s
+   Uses
+      At line 1044 in file LabFinal.s
+Comment: bed_o_b_msg0 used once
+bed_o_b_msg1 000003BC
+
+
+
+ARM Macro Assembler    Page 8 Alphabetic symbol ordering
+Relocatable symbols
+
+
+Symbol: bed_o_b_msg1
+   Definitions
+      At line 105 in file LabFinal.s
+   Uses
+      At line 1049 in file LabFinal.s
+      At line 1056 in file LabFinal.s
+
+bed_o_b_msg2 000003CD
+
+Symbol: bed_o_b_msg2
+   Definitions
+      At line 106 in file LabFinal.s
+   Uses
+      At line 1061 in file LabFinal.s
+      At line 1068 in file LabFinal.s
+
+bed_o_b_msg3 000003DE
+
+Symbol: bed_o_b_msg3
+   Definitions
+      At line 107 in file LabFinal.s
+   Uses
+      At line 1073 in file LabFinal.s
+Comment: bed_o_b_msg3 used once
+bed_o_j0 00000DFE
+
+Symbol: bed_o_j0
+   Definitions
+      At line 1021 in file LabFinal.s
+   Uses
+      At line 1012 in file LabFinal.s
+Comment: bed_o_j0 used once
+bed_o_j_msg0 0000038B
+
+Symbol: bed_o_j_msg0
+   Definitions
+      At line 102 in file LabFinal.s
+   Uses
+      At line 1022 in file LabFinal.s
+Comment: bed_o_j_msg0 used once
+bed_o_j_msg1 0000039C
+
+Symbol: bed_o_j_msg1
+   Definitions
+      At line 103 in file LabFinal.s
+   Uses
+      At line 1027 in file LabFinal.s
+Comment: bed_o_j_msg1 used once
+bed_o_mnu 0000037A
+
+Symbol: bed_o_mnu
+   Definitions
+      At line 101 in file LabFinal.s
+   Uses
+      At line 1003 in file LabFinal.s
+Comment: bed_o_mnu used once
+bed_o_msg0 0000034C
+
+
+
+
+ARM Macro Assembler    Page 9 Alphabetic symbol ordering
+Relocatable symbols
+
+Symbol: bed_o_msg0
+   Definitions
+      At line 98 in file LabFinal.s
+   Uses
+      At line 972 in file LabFinal.s
+Comment: bed_o_msg0 used once
+bed_o_msg1 0000035D
+
+Symbol: bed_o_msg1
+   Definitions
+      At line 99 in file LabFinal.s
+   Uses
+      At line 977 in file LabFinal.s
+      At line 984 in file LabFinal.s
+
+bed_o_msg2 0000036E
+
+Symbol: bed_o_msg2
+   Definitions
+      At line 100 in file LabFinal.s
+   Uses
+      At line 989 in file LabFinal.s
+      At line 998 in file LabFinal.s
+
+bed_u0 00000EB2
+
+Symbol: bed_u0
+   Definitions
+      At line 1089 in file LabFinal.s
+   Uses
+      At line 966 in file LabFinal.s
+Comment: bed_u0 used once
+bed_u_msg0 000003E5
+
+Symbol: bed_u_msg0
+   Definitions
+      At line 108 in file LabFinal.s
+   Uses
+      At line 1090 in file LabFinal.s
+Comment: bed_u_msg0 used once
+bed_u_msg1 000003F6
+
+Symbol: bed_u_msg1
+   Definitions
+      At line 109 in file LabFinal.s
+   Uses
+      At line 1095 in file LabFinal.s
+      At line 1102 in file LabFinal.s
+
+bed_u_msg2 00000407
+
+Symbol: bed_u_msg2
+   Definitions
+      At line 110 in file LabFinal.s
+   Uses
+      At line 1107 in file LabFinal.s
+Comment: bed_u_msg2 used once
+chk_bf 00001120
+
+
+
+
+ARM Macro Assembler    Page 10 Alphabetic symbol ordering
+Relocatable symbols
+
+Symbol: chk_bf
+   Definitions
+      At line 1440 in file LabFinal.s
+   Uses
+      At line 1383 in file LabFinal.s
+      At line 1418 in file LabFinal.s
+
+chk_key 00000FA6
+
+Symbol: chk_key
+   Definitions
+      At line 1232 in file LabFinal.s
+   Uses
+      At line 509 in file LabFinal.s
+      At line 826 in file LabFinal.s
+      At line 861 in file LabFinal.s
+      At line 896 in file LabFinal.s
+      At line 1039 in file LabFinal.s
+      At line 1085 in file LabFinal.s
+      At line 1119 in file LabFinal.s
+
+chk_key0 00001056
+
+Symbol: chk_key0
+   Definitions
+      At line 1303 in file LabFinal.s
+   Uses
+      At line 1240 in file LabFinal.s
+Comment: chk_key0 used once
+chk_key_end 00001076
+
+Symbol: chk_key_end
+   Definitions
+      At line 1316 in file LabFinal.s
+   Uses
+      At line 1301 in file LabFinal.s
+Comment: chk_key_end used once
+chs0 000006FE
+
+Symbol: chs0
+   Definitions
+      At line 360 in file LabFinal.s
+   Uses
+      At line 370 in file LabFinal.s
+Comment: chs0 used once
+chs1 00000714
+
+Symbol: chs1
+   Definitions
+      At line 372 in file LabFinal.s
+   Uses
+      At line 363 in file LabFinal.s
+Comment: chs1 used once
+chs2 0000071E
+
+Symbol: chs2
+   Definitions
+      At line 376 in file LabFinal.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 11 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 368 in file LabFinal.s
+Comment: chs2 used once
+chs_end 00000726
+
+Symbol: chs_end
+   Definitions
+      At line 379 in file LabFinal.s
+   Uses
+      At line 374 in file LabFinal.s
+Comment: chs_end used once
+chs_mnu 000000BC
+
+Symbol: chs_mnu
+   Definitions
+      At line 48 in file LabFinal.s
+   Uses
+      At line 354 in file LabFinal.s
+Comment: chs_mnu used once
+chs_msg0 000000A1
+
+Symbol: chs_msg0
+   Definitions
+      At line 46 in file LabFinal.s
+   Uses
+      At line 335 in file LabFinal.s
+Comment: chs_msg0 used once
+chs_msg1 000000B2
+
+Symbol: chs_msg1
+   Definitions
+      At line 47 in file LabFinal.s
+   Uses
+      At line 340 in file LabFinal.s
+      At line 349 in file LabFinal.s
+
+cleanup 00001148
+
+Symbol: cleanup
+   Definitions
+      At line 1469 in file LabFinal.s
+   Uses
+      At line 1162 in file LabFinal.s
+Comment: cleanup used once
+delay 00001136
+
+Symbol: delay
+   Definitions
+      At line 1456 in file LabFinal.s
+   Uses
+      At line 1393 in file LabFinal.s
+      At line 1426 in file LabFinal.s
+      At line 1445 in file LabFinal.s
+
+delay0 0000113A
+
+Symbol: delay0
+   Definitions
+      At line 1461 in file LabFinal.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 12 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 1463 in file LabFinal.s
+Comment: delay0 used once
+drsr0 0000074E
+
+Symbol: drsr0
+   Definitions
+      At line 405 in file LabFinal.s
+   Uses
+      At line 415 in file LabFinal.s
+Comment: drsr0 used once
+drsr_d0 00000A0C
+
+Symbol: drsr_d0
+   Definitions
+      At line 670 in file LabFinal.s
+   Uses
+      At line 413 in file LabFinal.s
+Comment: drsr_d0 used once
+drsr_d1 00000A90
+
+Symbol: drsr_d1
+   Definitions
+      At line 720 in file LabFinal.s
+   Uses
+      At line 730 in file LabFinal.s
+Comment: drsr_d1 used once
+drsr_d_b0 00000BF6
+
+Symbol: drsr_d_b0
+   Definitions
+      At line 866 in file LabFinal.s
+   Uses
+      At line 728 in file LabFinal.s
+Comment: drsr_d_b0 used once
+drsr_d_b_msg0 000002CF
+
+Symbol: drsr_d_b_msg0
+   Definitions
+      At line 88 in file LabFinal.s
+   Uses
+      At line 867 in file LabFinal.s
+Comment: drsr_d_b_msg0 used once
+drsr_d_b_msg1 000002E0
+
+Symbol: drsr_d_b_msg1
+   Definitions
+      At line 89 in file LabFinal.s
+   Uses
+      At line 872 in file LabFinal.s
+      At line 879 in file LabFinal.s
+
+drsr_d_b_msg2 000002F1
+
+Symbol: drsr_d_b_msg2
+   Definitions
+      At line 90 in file LabFinal.s
+   Uses
+      At line 884 in file LabFinal.s
+Comment: drsr_d_b_msg2 used once
+
+
+
+ARM Macro Assembler    Page 13 Alphabetic symbol ordering
+Relocatable symbols
+
+drsr_d_mnu 00000217
+
+Symbol: drsr_d_mnu
+   Definitions
+      At line 76 in file LabFinal.s
+   Uses
+      At line 714 in file LabFinal.s
+Comment: drsr_d_mnu used once
+drsr_d_msg0 000001E6
+
+Symbol: drsr_d_msg0
+   Definitions
+      At line 72 in file LabFinal.s
+   Uses
+      At line 671 in file LabFinal.s
+Comment: drsr_d_msg0 used once
+drsr_d_msg1 000001F4
+
+Symbol: drsr_d_msg1
+   Definitions
+      At line 73 in file LabFinal.s
+   Uses
+      At line 676 in file LabFinal.s
+      At line 683 in file LabFinal.s
+
+drsr_d_msg2 00000204
+
+Symbol: drsr_d_msg2
+   Definitions
+      At line 74 in file LabFinal.s
+   Uses
+      At line 688 in file LabFinal.s
+      At line 695 in file LabFinal.s
+
+drsr_d_msg3 00000210
+
+Symbol: drsr_d_msg3
+   Definitions
+      At line 75 in file LabFinal.s
+   Uses
+      At line 700 in file LabFinal.s
+      At line 709 in file LabFinal.s
+
+drsr_d_t0 00000AA8
+
+Symbol: drsr_d_t0
+   Definitions
+      At line 733 in file LabFinal.s
+   Uses
+      At line 723 in file LabFinal.s
+Comment: drsr_d_t0 used once
+drsr_d_t1 00000B2C
+
+Symbol: drsr_d_t1
+   Definitions
+      At line 783 in file LabFinal.s
+   Uses
+      At line 793 in file LabFinal.s
+Comment: drsr_d_t1 used once
+
+
+
+ARM Macro Assembler    Page 14 Alphabetic symbol ordering
+Relocatable symbols
+
+drsr_d_t_mnu 00000267
+
+Symbol: drsr_d_t_mnu
+   Definitions
+      At line 81 in file LabFinal.s
+   Uses
+      At line 777 in file LabFinal.s
+Comment: drsr_d_t_mnu used once
+drsr_d_t_msg0 00000228
+
+Symbol: drsr_d_t_msg0
+   Definitions
+      At line 77 in file LabFinal.s
+   Uses
+      At line 734 in file LabFinal.s
+Comment: drsr_d_t_msg0 used once
+drsr_d_t_msg1 00000239
+
+Symbol: drsr_d_t_msg1
+   Definitions
+      At line 78 in file LabFinal.s
+   Uses
+      At line 739 in file LabFinal.s
+      At line 746 in file LabFinal.s
+
+drsr_d_t_msg2 0000024A
+
+Symbol: drsr_d_t_msg2
+   Definitions
+      At line 79 in file LabFinal.s
+   Uses
+      At line 751 in file LabFinal.s
+      At line 758 in file LabFinal.s
+
+drsr_d_t_msg3 0000025B
+
+Symbol: drsr_d_t_msg3
+   Definitions
+      At line 80 in file LabFinal.s
+   Uses
+      At line 763 in file LabFinal.s
+      At line 772 in file LabFinal.s
+
+drsr_d_t_p0 00000B9C
+
+Symbol: drsr_d_t_p0
+   Definitions
+      At line 831 in file LabFinal.s
+   Uses
+      At line 791 in file LabFinal.s
+Comment: drsr_d_t_p0 used once
+drsr_d_t_p_msg0 000002A2
+
+Symbol: drsr_d_t_p_msg0
+   Definitions
+      At line 85 in file LabFinal.s
+   Uses
+      At line 832 in file LabFinal.s
+Comment: drsr_d_t_p_msg0 used once
+
+
+
+ARM Macro Assembler    Page 15 Alphabetic symbol ordering
+Relocatable symbols
+
+drsr_d_t_p_msg1 000002B3
+
+Symbol: drsr_d_t_p_msg1
+   Definitions
+      At line 86 in file LabFinal.s
+   Uses
+      At line 837 in file LabFinal.s
+      At line 844 in file LabFinal.s
+
+drsr_d_t_p_msg2 000002C4
+
+Symbol: drsr_d_t_p_msg2
+   Definitions
+      At line 87 in file LabFinal.s
+   Uses
+      At line 849 in file LabFinal.s
+Comment: drsr_d_t_p_msg2 used once
+drsr_d_t_s0 00000B42
+
+Symbol: drsr_d_t_s0
+   Definitions
+      At line 796 in file LabFinal.s
+   Uses
+      At line 786 in file LabFinal.s
+Comment: drsr_d_t_s0 used once
+drsr_d_t_s_msg0 00000278
+
+Symbol: drsr_d_t_s_msg0
+   Definitions
+      At line 82 in file LabFinal.s
+   Uses
+      At line 797 in file LabFinal.s
+Comment: drsr_d_t_s_msg0 used once
+drsr_d_t_s_msg1 00000289
+
+Symbol: drsr_d_t_s_msg1
+   Definitions
+      At line 83 in file LabFinal.s
+   Uses
+      At line 802 in file LabFinal.s
+      At line 809 in file LabFinal.s
+
+drsr_d_t_s_msg2 0000029A
+
+Symbol: drsr_d_t_s_msg2
+   Definitions
+      At line 84 in file LabFinal.s
+   Uses
+      At line 814 in file LabFinal.s
+Comment: drsr_d_t_s_msg2 used once
+drsr_end 00000C50
+
+Symbol: drsr_end
+   Definitions
+      At line 901 in file LabFinal.s
+   Uses
+      At line 511 in file LabFinal.s
+      At line 655 in file LabFinal.s
+      At line 666 in file LabFinal.s
+
+
+
+ARM Macro Assembler    Page 16 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 828 in file LabFinal.s
+      At line 863 in file LabFinal.s
+      At line 898 in file LabFinal.s
+      At line 1041 in file LabFinal.s
+      At line 1087 in file LabFinal.s
+
+drsr_mnu 000000DA
+
+Symbol: drsr_mnu
+   Definitions
+      At line 52 in file LabFinal.s
+   Uses
+      At line 399 in file LabFinal.s
+Comment: drsr_mnu used once
+drsr_msg 000000CD
+
+Symbol: drsr_msg
+   Definitions
+      At line 51 in file LabFinal.s
+   Uses
+      At line 390 in file LabFinal.s
+Comment: drsr_msg used once
+drsr_t0 00000766
+
+Symbol: drsr_t0
+   Definitions
+      At line 419 in file LabFinal.s
+   Uses
+      At line 408 in file LabFinal.s
+Comment: drsr_t0 used once
+drsr_t1 000007CA
+
+Symbol: drsr_t1
+   Definitions
+      At line 457 in file LabFinal.s
+   Uses
+      At line 467 in file LabFinal.s
+Comment: drsr_t1 used once
+drsr_t_a0 000007E0
+
+Symbol: drsr_t_a0
+   Definitions
+      At line 470 in file LabFinal.s
+   Uses
+      At line 460 in file LabFinal.s
+Comment: drsr_t_a0 used once
+drsr_t_a_msg0 00000125
+
+Symbol: drsr_t_a_msg0
+   Definitions
+      At line 57 in file LabFinal.s
+   Uses
+      At line 471 in file LabFinal.s
+Comment: drsr_t_a_msg0 used once
+drsr_t_a_msg1 00000134
+
+Symbol: drsr_t_a_msg1
+   Definitions
+      At line 58 in file LabFinal.s
+
+
+
+ARM Macro Assembler    Page 17 Alphabetic symbol ordering
+Relocatable symbols
+
+   Uses
+      At line 476 in file LabFinal.s
+      At line 483 in file LabFinal.s
+
+drsr_t_a_msg2 00000144
+
+Symbol: drsr_t_a_msg2
+   Definitions
+      At line 59 in file LabFinal.s
+   Uses
+      At line 488 in file LabFinal.s
+      At line 495 in file LabFinal.s
+
+drsr_t_a_msg3 00000150
+
+Symbol: drsr_t_a_msg3
+   Definitions
+      At line 60 in file LabFinal.s
+   Uses
+      At line 500 in file LabFinal.s
+Comment: drsr_t_a_msg3 used once
+drsr_t_b0 00000852
+
+Symbol: drsr_t_b0
+   Definitions
+      At line 515 in file LabFinal.s
+   Uses
+      At line 465 in file LabFinal.s
+Comment: drsr_t_b0 used once
+drsr_t_b_a0 000008A8
+
+Symbol: drsr_t_b_a0
+   Definitions
+      At line 532 in file LabFinal.s
+   Uses
+      At line 519 in file LabFinal.s
+Comment: drsr_t_b_a0 used once
+drsr_t_b_b0 000009F4
+
+Symbol: drsr_t_b_b0
+   Definitions
+      At line 658 in file LabFinal.s
+   Uses
+      At line 525 in file LabFinal.s
+Comment: drsr_t_b_b0 used once
+drsr_t_b_msg_a0 0000015E
+
+Symbol: drsr_t_b_msg_a0
+   Definitions
+      At line 61 in file LabFinal.s
+   Uses
+      At line 533 in file LabFinal.s
+Comment: drsr_t_b_msg_a0 used once
+drsr_t_b_msg_a1 0000016C
+
+Symbol: drsr_t_b_msg_a1
+   Definitions
+      At line 62 in file LabFinal.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 18 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 538 in file LabFinal.s
+      At line 545 in file LabFinal.s
+
+drsr_t_b_msg_a2 0000017E
+
+Symbol: drsr_t_b_msg_a2
+   Definitions
+      At line 63 in file LabFinal.s
+   Uses
+      At line 550 in file LabFinal.s
+      At line 557 in file LabFinal.s
+
+drsr_t_b_msg_a3 00000189
+
+Symbol: drsr_t_b_msg_a3
+   Definitions
+      At line 64 in file LabFinal.s
+   Uses
+      At line 562 in file LabFinal.s
+      At line 570 in file LabFinal.s
+
+drsr_t_b_msg_a4 00000194
+
+Symbol: drsr_t_b_msg_a4
+   Definitions
+      At line 65 in file LabFinal.s
+   Uses
+      At line 575 in file LabFinal.s
+      At line 582 in file LabFinal.s
+
+drsr_t_b_msg_a5 000001A0
+
+Symbol: drsr_t_b_msg_a5
+   Definitions
+      At line 66 in file LabFinal.s
+   Uses
+      At line 587 in file LabFinal.s
+      At line 595 in file LabFinal.s
+
+drsr_t_b_msg_a6 000001A7
+
+Symbol: drsr_t_b_msg_a6
+   Definitions
+      At line 67 in file LabFinal.s
+   Uses
+      At line 600 in file LabFinal.s
+      At line 608 in file LabFinal.s
+
+drsr_t_b_msg_a7 000001B5
+
+Symbol: drsr_t_b_msg_a7
+   Definitions
+      At line 68 in file LabFinal.s
+   Uses
+      At line 613 in file LabFinal.s
+      At line 621 in file LabFinal.s
+
+drsr_t_b_msg_a8 000001BD
+
+
+
+
+ARM Macro Assembler    Page 19 Alphabetic symbol ordering
+Relocatable symbols
+
+Symbol: drsr_t_b_msg_a8
+   Definitions
+      At line 69 in file LabFinal.s
+   Uses
+      At line 626 in file LabFinal.s
+      At line 634 in file LabFinal.s
+
+drsr_t_b_msg_a9 000001C7
+
+Symbol: drsr_t_b_msg_a9
+   Definitions
+      At line 70 in file LabFinal.s
+   Uses
+      At line 639 in file LabFinal.s
+Comment: drsr_t_b_msg_a9 used once
+drsr_t_b_msg_b0 000001D6
+
+Symbol: drsr_t_b_msg_b0
+   Definitions
+      At line 71 in file LabFinal.s
+   Uses
+      At line 659 in file LabFinal.s
+Comment: drsr_t_b_msg_b0 used once
+drsr_t_mnu 00000117
+
+Symbol: drsr_t_mnu
+   Definitions
+      At line 56 in file LabFinal.s
+   Uses
+      At line 451 in file LabFinal.s
+Comment: drsr_t_mnu used once
+drsr_t_msg0 000000EB
+
+Symbol: drsr_t_msg0
+   Definitions
+      At line 53 in file LabFinal.s
+   Uses
+      At line 420 in file LabFinal.s
+Comment: drsr_t_msg0 used once
+drsr_t_msg1 000000F7
+
+Symbol: drsr_t_msg1
+   Definitions
+      At line 54 in file LabFinal.s
+   Uses
+      At line 425 in file LabFinal.s
+      At line 432 in file LabFinal.s
+
+drsr_t_msg2 00000106
+
+Symbol: drsr_t_msg2
+   Definitions
+      At line 55 in file LabFinal.s
+   Uses
+      At line 437 in file LabFinal.s
+      At line 446 in file LabFinal.s
+
+fail 00000536
+
+
+
+
+ARM Macro Assembler    Page 20 Alphabetic symbol ordering
+Relocatable symbols
+
+Symbol: fail
+   Definitions
+      At line 200 in file LabFinal.s
+   Uses
+      At line 180 in file LabFinal.s
+Comment: fail used once
+inpt_wait 00000F94
+
+Symbol: inpt_wait
+   Definitions
+      At line 1211 in file LabFinal.s
+   Uses
+      At line 174 in file LabFinal.s
+      At line 211 in file LabFinal.s
+      At line 248 in file LabFinal.s
+      At line 284 in file LabFinal.s
+      At line 325 in file LabFinal.s
+      At line 345 in file LabFinal.s
+      At line 395 in file LabFinal.s
+      At line 442 in file LabFinal.s
+      At line 506 in file LabFinal.s
+      At line 567 in file LabFinal.s
+      At line 592 in file LabFinal.s
+      At line 605 in file LabFinal.s
+      At line 618 in file LabFinal.s
+      At line 631 in file LabFinal.s
+      At line 644 in file LabFinal.s
+      At line 654 in file LabFinal.s
+      At line 665 in file LabFinal.s
+      At line 705 in file LabFinal.s
+      At line 768 in file LabFinal.s
+      At line 819 in file LabFinal.s
+      At line 823 in file LabFinal.s
+      At line 854 in file LabFinal.s
+      At line 858 in file LabFinal.s
+      At line 889 in file LabFinal.s
+      At line 893 in file LabFinal.s
+      At line 943 in file LabFinal.s
+      At line 994 in file LabFinal.s
+      At line 1032 in file LabFinal.s
+      At line 1036 in file LabFinal.s
+      At line 1078 in file LabFinal.s
+      At line 1082 in file LabFinal.s
+      At line 1112 in file LabFinal.s
+      At line 1116 in file LabFinal.s
+      At line 1300 in file LabFinal.s
+      At line 1314 in file LabFinal.s
+
+key_found_msg0 00000011
+
+Symbol: key_found_msg0
+   Definitions
+      At line 31 in file LabFinal.s
+   Uses
+      At line 1250 in file LabFinal.s
+Comment: key_found_msg0 used once
+key_found_msg1 0000001F
+
+Symbol: key_found_msg1
+
+
+
+ARM Macro Assembler    Page 21 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 32 in file LabFinal.s
+   Uses
+      At line 1255 in file LabFinal.s
+      At line 1263 in file LabFinal.s
+
+key_found_msg2 00000025
+
+Symbol: key_found_msg2
+   Definitions
+      At line 33 in file LabFinal.s
+   Uses
+      At line 1268 in file LabFinal.s
+      At line 1276 in file LabFinal.s
+
+key_found_msg3 00000035
+
+Symbol: key_found_msg3
+   Definitions
+      At line 34 in file LabFinal.s
+   Uses
+      At line 1281 in file LabFinal.s
+      At line 1289 in file LabFinal.s
+
+key_found_msg4 00000041
+
+Symbol: key_found_msg4
+   Definitions
+      At line 35 in file LabFinal.s
+   Uses
+      At line 1294 in file LabFinal.s
+Comment: key_found_msg4 used once
+lab10 00000000
+
+Symbol: lab10
+   Definitions
+      At line 22 in file LabFinal.s
+   Uses
+      None
+Comment: lab10 unused
+lose_msg0 0000043A
+
+Symbol: lose_msg0
+   Definitions
+      At line 115 in file LabFinal.s
+   Uses
+      At line 201 in file LabFinal.s
+Comment: lose_msg0 used once
+lose_msg1 0000044B
+
+Symbol: lose_msg1
+   Definitions
+      At line 116 in file LabFinal.s
+   Uses
+      At line 206 in file LabFinal.s
+      At line 214 in file LabFinal.s
+
+lose_msg2 0000045C
+
+
+
+
+ARM Macro Assembler    Page 22 Alphabetic symbol ordering
+Relocatable symbols
+
+Symbol: lose_msg2
+   Definitions
+      At line 117 in file LabFinal.s
+   Uses
+      At line 219 in file LabFinal.s
+      At line 226 in file LabFinal.s
+
+lose_msg3 0000046D
+
+Symbol: lose_msg3
+   Definitions
+      At line 118 in file LabFinal.s
+   Uses
+      At line 231 in file LabFinal.s
+      At line 238 in file LabFinal.s
+
+lose_msg4 0000047E
+
+Symbol: lose_msg4
+   Definitions
+      At line 119 in file LabFinal.s
+   Uses
+      At line 243 in file LabFinal.s
+Comment: lose_msg4 used once
+lskip0 000008A8
+
+Symbol: lskip0
+   Definitions
+      At line 529 in file LabFinal.s
+   Uses
+      At line 527 in file LabFinal.s
+Comment: lskip0 used once
+no_key_msg 00000008
+
+Symbol: no_key_msg
+   Definitions
+      At line 30 in file LabFinal.s
+   Uses
+      At line 1304 in file LabFinal.s
+Comment: no_key_msg used once
+stay 000005DA
+
+Symbol: stay
+   Definitions
+      At line 261 in file LabFinal.s
+   Uses
+      At line 198 in file LabFinal.s
+      At line 261 in file LabFinal.s
+
+sys_speed 00000004
+
+Symbol: sys_speed
+   Definitions
+      At line 26 in file LabFinal.s
+   Uses
+      At line 145 in file LabFinal.s
+Comment: sys_speed used once
+talk_speed 00000000
+
+
+
+
+ARM Macro Assembler    Page 23 Alphabetic symbol ordering
+Relocatable symbols
+
+Symbol: talk_speed
+   Definitions
+      At line 25 in file LabFinal.s
+   Uses
+      At line 144 in file LabFinal.s
+Comment: talk_speed used once
+tst_lbl 000004F0
+
+Symbol: tst_lbl
+   Definitions
+      At line 167 in file LabFinal.s
+   Uses
+      At line 185 in file LabFinal.s
+Comment: tst_lbl used once
+tst_string0 00000050
+
+Symbol: tst_string0
+   Definitions
+      At line 38 in file LabFinal.s
+   Uses
+      At line 274 in file LabFinal.s
+Comment: tst_string0 used once
+tst_string1 0000005F
+
+Symbol: tst_string1
+   Definitions
+      At line 39 in file LabFinal.s
+   Uses
+      At line 279 in file LabFinal.s
+Comment: tst_string1 used once
+tst_string2 00000067
+
+Symbol: tst_string2
+   Definitions
+      At line 40 in file LabFinal.s
+   Uses
+      At line 291 in file LabFinal.s
+Comment: tst_string2 used once
+tst_string3 00000078
+
+Symbol: tst_string3
+   Definitions
+      At line 41 in file LabFinal.s
+   Uses
+      At line 296 in file LabFinal.s
+      At line 303 in file LabFinal.s
+
+tst_string4 00000089
+
+Symbol: tst_string4
+   Definitions
+      At line 42 in file LabFinal.s
+   Uses
+      At line 308 in file LabFinal.s
+      At line 315 in file LabFinal.s
+
+tst_string5 0000009A
+
+Symbol: tst_string5
+
+
+
+ARM Macro Assembler    Page 24 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 43 in file LabFinal.s
+   Uses
+      At line 320 in file LabFinal.s
+Comment: tst_string5 used once
+tst_string6 00000418
+
+Symbol: tst_string6
+   Definitions
+      At line 112 in file LabFinal.s
+   Uses
+      At line 188 in file LabFinal.s
+Comment: tst_string6 used once
+tst_string7 00000429
+
+Symbol: tst_string7
+   Definitions
+      At line 113 in file LabFinal.s
+   Uses
+      At line 193 in file LabFinal.s
+Comment: tst_string7 used once
+tst_string8 00000485
+
+Symbol: tst_string8
+   Definitions
+      At line 121 in file LabFinal.s
+   Uses
+      At line 251 in file LabFinal.s
+Comment: tst_string8 used once
+tst_string9 00000496
+
+Symbol: tst_string9
+   Definitions
+      At line 122 in file LabFinal.s
+   Uses
+      At line 256 in file LabFinal.s
+Comment: tst_string9 used once
+xx 00000F96
+
+Symbol: xx
+   Definitions
+      At line 1214 in file LabFinal.s
+   Uses
+      At line 1217 in file LabFinal.s
+Comment: xx used once
+140 symbols
+491 symbols in table
